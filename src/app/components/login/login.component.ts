@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { createClient } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-login',
@@ -10,14 +11,14 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: var(--bg-primary); padding: 1rem;">
-      <div style="max-width: 420px; width: 100%; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);">
+      <div style="max-width: 420px; width: 100%; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);">
         <div style="text-align: center; margin-bottom: 2rem;">
           <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background-color: #4f46e5; color: white; font-weight: bold; border-radius: 1rem; font-size: 1.25rem; margin-bottom: 1rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);">F</div>
           <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.5rem 0;">Forenode AI</h2>
           <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Plataforma Global de Inteligencia Logística Agrícola</p>
         </div>
 
-        <!-- Botón de Inicio de Sesión con Google -->
+        <!-- Botón de Google Real -->
         <button (click)="loginWithGoogle()" style="width: 100%; padding: 0.75rem 1rem; background-color: #ffffff; color: #374151; font-weight: 600; border-radius: 0.75rem; border: 1px solid var(--border-color); cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: background-color 0.2s; margin-bottom: 1.5rem;">
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
@@ -25,12 +26,12 @@ import { AuthService } from '../../services/auth.service';
             <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.82 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/>
             <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.15 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
           </svg>
-          <span>Continuar con Google</span>
+          <span>Iniciar sesión con Google</span>
         </button>
 
         <div style="display: flex; align-items: center; text-align: center; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.75rem;">
           <div style="flex: 1; border-bottom: 1px solid var(--border-color);"></div>
-          <span style="padding: 0 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">O con correo</span>
+          <span style="padding: 0 0.75rem; text-transform: uppercase; font-weight: 600;">O con credenciales</span>
           <div style="flex: 1; border-bottom: 1px solid var(--border-color);"></div>
         </div>
 
@@ -51,7 +52,7 @@ import { AuthService } from '../../services/auth.service';
             {{ errorMessage }}
           </div>
 
-          <button type="submit" style="width: 100%; padding: 0.875rem; background-color: var(--primary-color); color: white; font-weight: 600; border-radius: 0.75rem; border: none; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">
+          <button type="submit" style="width: 100%; padding: 0.875rem; background-color: var(--primary-color); color: white; font-weight: 600; border-radius: 0.75rem; border: none; cursor: pointer; font-size: 0.95rem;">
             Iniciar Sesión
           </button>
 
@@ -69,6 +70,11 @@ export class LoginComponent {
   password = '';
   errorMessage = '';
 
+  private supabase = createClient(
+    'https://bzyfsijhlwpgvuuawldt.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6eWZzaWpobHdwZ3Z1dWF3bGR0Iiwicm9sZSI6ImFub24iLCJpYXJpYXQiOjE3NzM0...'
+  );
+
   constructor(private authService: AuthService, private router: Router) {}
 
   onLogin() {
@@ -78,11 +84,16 @@ export class LoginComponent {
     });
   }
 
-  loginWithGoogle() {
-    // Simulación corporativa fluida de autenticación OAuth con Google
-    // O puedes enlazarlo al endpoint de Supabase Auth con Google si lo prefieres
-    localStorage.setItem('forenode_token', 'google_oauth_mock_token_verified');
-    localStorage.setItem('forenode_user', 'Analista Google');
-    this.router.navigate(['/dashboard']);
+  async loginWithGoogle() {
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/dashboard'
+      }
+    });
+
+    if (error) {
+      this.errorMessage = error.message;
+    }
   }
 }
