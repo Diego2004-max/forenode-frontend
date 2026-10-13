@@ -9,30 +9,38 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-      <div class="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800">
-        <div>
-          <h2 class="text-center text-3xl font-extrabold text-slate-900 dark:text-white">Forenode AI</h2>
-          <p class="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">Plataforma Global de Inteligencia Logística Agrícola</p>
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: var(--bg-primary); padding: 1rem;">
+      <div style="max-width: 420px; width: 100%; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background-color: #4f46e5; color: white; font-weight: bold; border-radius: 1rem; font-size: 1.25rem; margin-bottom: 1rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);">F</div>
+          <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.5rem 0;">Forenode AI</h2>
+          <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Plataforma Global de Inteligencia Logística Agrícola</p>
         </div>
-        <form class="mt-8 space-y-6" (ngSubmit)="onLogin()">
-          <div class="rounded-md shadow-sm space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Correo Electrónico</label>
-              <input [(ngModel)]="email" name="email" type="email" required class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="analista@forenode.ai">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Contraseña</label>
-              <input [(ngModel)]="password" name="password" type="password" required class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-700 placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="••••••••">
-            </div>
-          </div>
-          <div *ngIf="errorMessage" class="text-red-500 text-sm text-center font-medium">{{ errorMessage }}</div>
+
+        <form (ngSubmit)="onLogin()" style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
-            <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-md">Iniciar Sesión</button>
+            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem;">Correo Electrónico</label>
+            <input [(ngModel)]="email" name="email" type="email" required placeholder="analista@forenode.ai" 
+              style="width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-size: 0.875rem; outline: none; box-sizing: border-box;">
           </div>
-          <div class="text-center text-sm">
-            <span class="text-slate-600 dark:text-slate-400">¿No tienes cuenta? </span>
-            <a routerLink="/register" class="font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Regístrate aquí</a>
+
+          <div>
+            <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem;">Contraseña</label>
+            <input [(ngModel)]="password" name="password" type="password" required placeholder="••••••••" 
+              style="width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-size: 0.875rem; outline: none; box-sizing: border-box;">
+          </div>
+
+          <div *ngIf="errorMessage" style="padding: 0.75rem; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; color: #ef4444; font-size: 0.875rem; text-align: center; font-weight: 500;">
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" style="width: 100%; padding: 0.875rem; background-color: var(--primary-color); color: white; font-weight: 600; border-radius: 0.75rem; border: none; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); transition: background-color 0.2s;">
+            Iniciar Sesión
+          </button>
+
+          <div style="text-align: center; font-size: 0.875rem; margin-top: 0.5rem;">
+            <span style="color: var(--text-muted);">¿No tienes cuenta? </span>
+            <a routerLink="/register" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">Regístrate aquí</a>
           </div>
         </form>
       </div>
