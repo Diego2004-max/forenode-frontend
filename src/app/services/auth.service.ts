@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = '(https://forenode-backend-odh7.onrender.com/api/v1/';
+  private readonly API_URL = 'https://forenode-backend-odh7.onrender.com/api/v1';
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -47,6 +47,6 @@ export class AuthService {
   }
 
   getUserName(): string {
-    return localStorage.getItem('user_name') || 'Analista Agrónomo';
+    return localStorage.getItem('user_name') || localStorage.getItem('user_email') || 'Analista Google';
   }
 }

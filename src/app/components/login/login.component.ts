@@ -74,14 +74,13 @@ export class LoginComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
-    // Captura el token de acceso que devuelve Supabase en la URL tras iniciar con Google
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
       const params = new URLSearchParams(hash.replace('#', '?'));
       const accessToken = params.get('access_token');
       if (accessToken) {
-        localStorage.setItem('forenode_token', accessToken);
-        localStorage.setItem('forenode_user', 'Analista Google');
+        localStorage.setItem('token', accessToken); // Guardado con la clave correcta
+        localStorage.setItem('user_name', 'Analista Google');
         this.router.navigate(['/dashboard']);
       }
     }
