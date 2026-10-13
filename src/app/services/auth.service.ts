@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'https://forenode-backend.onrender.com/api/v1/auth';
+  private readonly API_URL = '(https://forenode-backend-odh7.onrender.com/api/v1/';
 
   constructor(private http: HttpClient, private router: Router) {}
 
