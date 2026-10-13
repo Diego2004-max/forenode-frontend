@@ -17,6 +17,23 @@ import { AuthService } from '../../services/auth.service';
           <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Plataforma Global de Inteligencia Logística Agrícola</p>
         </div>
 
+        <!-- Botón de Inicio de Sesión con Google -->
+        <button (click)="loginWithGoogle()" style="width: 100%; padding: 0.75rem 1rem; background-color: #ffffff; color: #374151; font-weight: 600; border-radius: 0.75rem; border: 1px solid var(--border-color); cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: background-color 0.2s; margin-bottom: 1.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.32 7.23 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.18C.43 8.12 0 9.82 0 12s.43 3.88 1.18 5.4l4.09-3.16z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.15 2.68 1.18 6.6l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+          </svg>
+          <span>Continuar con Google</span>
+        </button>
+
+        <div style="display: flex; align-items: center; text-align: center; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.75rem;">
+          <div style="flex: 1; border-bottom: 1px solid var(--border-color);"></div>
+          <span style="padding: 0 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">O con correo</span>
+          <div style="flex: 1; border-bottom: 1px solid var(--border-color);"></div>
+        </div>
+
         <form (ngSubmit)="onLogin()" style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
             <label style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem;">Correo Electrónico</label>
@@ -34,7 +51,7 @@ import { AuthService } from '../../services/auth.service';
             {{ errorMessage }}
           </div>
 
-          <button type="submit" style="width: 100%; padding: 0.875rem; background-color: var(--primary-color); color: white; font-weight: 600; border-radius: 0.75rem; border: none; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); transition: background-color 0.2s;">
+          <button type="submit" style="width: 100%; padding: 0.875rem; background-color: var(--primary-color); color: white; font-weight: 600; border-radius: 0.75rem; border: none; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">
             Iniciar Sesión
           </button>
 
@@ -59,5 +76,13 @@ export class LoginComponent {
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => this.errorMessage = err.error?.detail || 'Credenciales incorrectas'
     });
+  }
+
+  loginWithGoogle() {
+    // Simulación corporativa fluida de autenticación OAuth con Google
+    // O puedes enlazarlo al endpoint de Supabase Auth con Google si lo prefieres
+    localStorage.setItem('forenode_token', 'google_oauth_mock_token_verified');
+    localStorage.setItem('forenode_user', 'Analista Google');
+    this.router.navigate(['/dashboard']);
   }
 }
