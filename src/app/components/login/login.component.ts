@@ -81,7 +81,7 @@ export class LoginComponent {
   }
 
   loginWithGoogle() {
-    // Redirección directa y nativa al endpoint OAuth de Supabase sin dependencias externas
+    // Detecta dinámicamente si está en Vercel o local y redirige a /dashboard con el token OAuth
     const supabaseUrl = 'https://bzyfsijhlwpgvuuawldt.supabase.co';
     const redirectUrl = window.location.origin + '/dashboard';
     window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
