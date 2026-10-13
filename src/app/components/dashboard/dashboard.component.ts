@@ -9,125 +9,141 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
-      <!-- Header -->
-      <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center shadow-sm">
-        <div class="flex items-center space-x-3">
-          <div class="bg-indigo-600 text-white font-bold p-2 rounded-lg">F</div>
+    <div style="min-height: 100vh; background-color: var(--bg-primary); color: var(--text-main); display: flex; flex-direction: column;">
+      <!-- Header Ejecutivo -->
+      <header style="background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.02);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="background-color: #4f46e5; color: white; font-weight: bold; padding: 0.5rem 0.75rem; border-radius: 0.75rem; font-size: 1rem;">F</div>
           <div>
-            <h1 class="text-lg font-bold tracking-tight">FORENODE AI</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400">ENTERPRISE CORE V4.0</p>
+            <h1 style="font-size: 1.1rem; font-weight: 800; margin: 0; letter-spacing: -0.025em;">FORENODE AI</h1>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">ENTERPRISE CORE V4.0</p>
           </div>
         </div>
-        <div class="flex items-center space-x-4">
-          <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Hola, {{ userName }}</span>
-          <button (click)="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-            <span *ngIf="isDarkMode">🌞 Modo Light</span>
-            <span *ngIf="!isDarkMode">🌙 Modo Dark</span>
+
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
+          <span style="font-size: 0.875rem; font-weight: 500; color: var(--text-muted);">Analista: <strong style="color: var(--text-main);">{{ userName }}</strong></span>
+          
+          <button (click)="toggleDarkMode()" style="padding: 0.5rem 0.875rem; border-radius: 0.6rem; background-color: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
+            <span>{{ isDarkMode ? '🌞 Modo Light' : '🌙 Modo Dark' }}</span>
           </button>
-          <button (click)="logout()" class="px-3 py-2 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/50 dark:text-red-400 transition">Cerrar Sesión</button>
+
+          <button (click)="logout()" style="padding: 0.5rem 0.875rem; border-radius: 0.6rem; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+            Cerrar Sesión
+          </button>
         </div>
       </header>
 
-      <!-- Main Layout -->
-      <div class="flex-1 flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <aside class="w-full md:w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between">
-          <div class="space-y-6">
+      <!-- Layout Principal -->
+      <div style="display: flex; flex: 1; flex-direction: row; flex-wrap: wrap;">
+        <!-- Sidebar de Control -->
+        <aside style="width: 320px; background-color: var(--bg-card); border-right: 1px solid var(--border-color); padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Zona Cosechera / Nodo Regional</label>
-              <select [(ngModel)]="selectedRegion" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
-                <option *ngFor="let reg of regions" [ngValue]="reg">{{ reg.name }}</option>
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 0.05em;">Zona Cosechera / Nodo</label>
+              <select [(ngModel)]="selectedRegion" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-size: 0.875rem; outline: none;">
+                <option *ngFor="let reg of regions" [ngValue]="reg">{{ reg.name }} (Nariño)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Cadena Agrícola / Producto</label>
-              <select [(ngModel)]="selectedProduct" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+              <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 0.05em;">Cadena Agrícola / Producto</label>
+              <select [(ngModel)]="selectedProduct" style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-primary); color: var(--text-main); font-size: 0.875rem; outline: none;">
                 <option *ngFor="let prod of products" [ngValue]="prod">{{ prod.name }}</option>
               </select>
             </div>
           </div>
 
-          <div class="mt-8">
-            <button (click)="executeEngine()" [disabled]="isLoading" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-lg transition-all flex justify-center items-center space-x-2 disabled:opacity-50">
-              <span *ngIf="isLoading" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-              <span>{{ isLoading ? 'Procesando IA...' : 'Ejecutar Motor de Demanda' }}</span>
+          <div style="margin-top: 2rem;">
+            <button (click)="executeEngine()" [disabled]="isLoading" style="width: 100%; padding: 0.875rem; background-color: var(--primary-color); color: white; font-weight: 600; border-radius: 0.75rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.25); display: flex; justify-content: center; align-items: center; gap: 0.5rem; transition: opacity 0.2s;">
+              <span *ngIf="isLoading" style="width: 1rem; height: 1rem; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+              <span>{{ isLoading ? 'Analizando con IA...' : 'Ejecutar Motor de Demanda' }}</span>
             </button>
           </div>
         </aside>
 
-        <!-- Content Area -->
-        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
-          <div class="max-w-5xl mx-auto space-y-6">
-            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center">
+        <!-- Área de Resultados y Análisis -->
+        <main style="flex: 1; padding: 2.5rem; box-sizing: border-box; overflow-y: auto;">
+          <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem;">
+            <!-- Banner Superior -->
+            <div style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; padding: 1.75rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
               <div>
-                <h2 class="text-2xl font-bold tracking-tight">Panel de Inteligencia Logística y Oferta-Demanda</h2>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Análisis predictivo en tiempo real con Scikit-Learn y Open-Meteo</p>
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0 0 0.25rem 0; letter-spacing: -0.02em;">Panel de Inteligencia Logística</h2>
+                <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Sincronización en vivo con modelos de Scikit-Learn y Open-Meteo</p>
               </div>
-              <div class="flex items-center space-x-2 text-xs bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 px-3 py-1.5 rounded-full font-medium border border-emerald-200 dark:border-emerald-800">
-                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.35rem 0.85rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; color: #10b981;">
+                <span style="width: 8px; height: 8px; background-color: #10b981; border-radius: 50%;"></span>
                 <span>Modelo Activo</span>
               </div>
             </div>
 
             <!-- Error Banner -->
-            <div *ngIf="errorMessage" class="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-xl text-sm font-medium">
+            <div *ngIf="errorMessage" style="background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem; border-radius: 1rem; color: #ef4444; font-size: 0.875rem; font-weight: 500;">
               {{ errorMessage }}
             </div>
 
-            <!-- Results Grid -->
-            <div *ngIf="result" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Clima en Vivo</p>
-                <div class="mt-4 flex justify-between items-baseline">
+            <!-- Grid de Resultados -->
+            <div *ngIf="result" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+              <!-- Clima Real -->
+              <div style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
+                <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Clima en Vivo (Open-Meteo)</span>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 1.25rem;">
                   <div>
-                    <span class="text-3xl font-extrabold">{{ result.forecast_temperature_c }}°C</span>
-                    <p class="text-xs text-slate-500 mt-1">Temperatura</p>
+                    <span style="font-size: 2.25rem; font-weight: 800;">{{ result.forecast_temperature_c }}°C</span>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">Temperatura</p>
                   </div>
                   <div>
-                    <span class="text-3xl font-extrabold">{{ result.forecast_rainfall_mm }}mm</span>
-                    <p class="text-xs text-slate-500 mt-1">Precipitación</p>
+                    <span style="font-size: 2.25rem; font-weight: 800;">{{ result.forecast_rainfall_mm }}mm</span>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">Precipitación</p>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Proyección de Demanda vs Oferta</p>
-                <div class="mt-4 space-y-2">
-                  <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">Demanda IA:</span>
-                    <span class="font-bold">{{ result.predicted_demand_kg }} kg</span>
+              <!-- Demanda vs Oferta -->
+              <div style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
+                <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Proyección Logística (Scikit-Learn)</span>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.25rem;">
+                  <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);">Demanda Proyectada:</span>
+                    <span style="font-weight: 700;">{{ result.predicted_demand_kg }} kg</span>
                   </div>
-                  <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">Oferta Cooperativa:</span>
-                    <span class="font-bold">{{ result.available_supply_kg }} kg</span>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                    <span style="color: var(--text-muted);">Oferta Disponible:</span>
+                    <span style="font-weight: 700;">{{ result.available_supply_kg }} kg</span>
                   </div>
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Estado del Mercado</p>
-                <div class="mt-4">
-                  <span class="inline-block px-3 py-1 rounded-lg text-xs font-bold" [ngClass]="{
-                    'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': result.deficit_or_surplus_kg > 150,
-                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300': result.deficit_or_surplus_kg <= 150
-                  }">{{ result.market_status }}</span>
-                  <p class="text-xs text-slate-500 mt-3">Confianza del Modelo: <strong>{{ (result.confidence_score * 100).toFixed(0) }}%</strong></p>
+              <!-- Estado del Mercado -->
+              <div style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
+                <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Estado del Mercado</span>
+                <div style="margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                  <span style="display: inline-block; padding: 0.4rem 0.75rem; border-radius: 0.6rem; font-size: 0.75rem; font-weight: 700; width: fit-content;"
+                    [style.background-color]="result.deficit_or_surplus_kg > 150 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)'"
+                    [style.color]="result.deficit_or_surplus_kg > 150 ? '#d97706' : '#059669'">
+                    {{ result.market_status }}
+                  </span>
+                  <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Nivel de Confianza: <strong style="color: var(--text-main);">{{ (result.confidence_score * 100).toFixed(0) }}%</strong></p>
                 </div>
               </div>
             </div>
 
-            <!-- Placeholder State -->
-            <div *ngIf="!result && !isLoading" class="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div class="mx-auto h-12 w-12 text-slate-400 mb-4 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">📊</div>
-              <h3 class="text-lg font-medium">Seleccione una Zona y Producto</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Haga clic en "Ejecutar Motor de Demanda" para calcular los resultados en tiempo real.</p>
+            <!-- Estado Vacío Inicial -->
+            <div *ngIf="!result && !isLoading" style="background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; padding: 4rem 2rem; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01);">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">📊</div>
+              <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem 0;">Seleccione Nodo y Producto</h3>
+              <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">Haga clic en el botón lateral para ejecutar el motor analítico predictivo en tiempo real.</p>
             </div>
           </div>
         </main>
       </div>
     </div>
+    
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   `
 })
 export class DashboardComponent implements OnInit {
@@ -157,7 +173,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.userName = this.authService.getUserName();
-    // Light por defecto
+    // Modo Light por defecto absoluto
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.isDarkMode = true;
