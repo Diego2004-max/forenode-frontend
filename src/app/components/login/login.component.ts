@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -66,12 +66,26 @@ import { AuthService } from '../../services/auth.service';
     </div>
   `
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   errorMessage = '';
 
   constructor(private authService: AuthService, private router: Router) {}
+
+  ngOnInit() {
+    // Captura el token de acceso que devuelve Supabase en la URL tras iniciar con Google
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      const params = new URLSearchParams(hash.replace('#', '?'));
+      const accessToken = params.get('access_token');
+      if (accessToken) {
+        localStorage.setItem('forenode_token', accessToken);
+        localStorage.setItem('forenode_user', 'Analista Google');
+        this.router.navigate(['/dashboard']);
+      }
+    }
+  }
 
   onLogin() {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
@@ -81,7 +95,6 @@ export class LoginComponent {
   }
 
   loginWithGoogle() {
-    // Detecta dinámicamente si está en Vercel o local y redirige a /dashboard con el token OAuth
     const supabaseUrl = 'https://bzyfsijhlwpgvuuawldt.supabase.co';
     const redirectUrl = window.location.origin + '/dashboard';
     window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
