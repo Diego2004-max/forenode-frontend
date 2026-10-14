@@ -95,7 +95,7 @@ export class LoginComponent implements OnInit {
 
   loginWithGoogle() {
     const supabaseUrl = 'https://bzyfsijhlwpgvuuawldt.supabase.co';
-    const redirectUrl = 'https://forenode-frontend.vercel.app/dashboard';
+    const redirectUrl = 'https://forenode-frontend.vercel.app/login';
     window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
   }
 }
