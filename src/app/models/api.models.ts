@@ -64,3 +64,26 @@ export interface InventoryRequest {
   source_reference: string;
 }
 
+export interface DemandObservationRequest {
+  product_code: string;
+  region_code: string;
+  observed_on: string;
+  demand_kg: number;
+  source_reference: string;
+}
+
+export interface TrainingRequest {
+  product_code: string;
+  region_code: string;
+}
+
+export interface TrainingResponse {
+  version: string;
+  product_code: string;
+  region_code: string;
+  training_rows: number;
+  mae_kg: number;
+  r2_score: number;
+  residual_p90_kg: number;
+}
+
