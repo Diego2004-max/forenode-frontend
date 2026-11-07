@@ -1,0 +1,18 @@
+<main class="auth-shell">
+  <section class="auth-story" aria-label="Presentación de Forenode AI">
+    <a class="brand brand--light" routerLink="/"><span class="brand__mark">F</span><span><strong>FORENODE AI</strong><small>ENTERPRISE CORE V4.0</small></span></a>
+    <div class="auth-story__content"><span class="eyebrow eyebrow--light">Red agrícola inteligente</span><h1>Decisiones con evidencia para cada nodo.</h1><p>Registra fuentes, entrena modelos auditables y equilibra oferta y demanda sin cifras simuladas.</p></div>
+    <p class="auth-story__footer">Datos protegidos · Acceso con JWT</p>
+  </section>
+  <section class="auth-panel"><div class="auth-card">
+    <span class="eyebrow">Nueva organización</span><h2>Crea tu acceso</h2><p class="auth-card__lead">Configura tu perfil de análisis en menos de un minuto.</p>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label>Nombre completo<input formControlName="fullName" autocomplete="name" placeholder="Nombre del analista"></label>
+      <label>Correo electrónico<input type="email" formControlName="email" autocomplete="email" placeholder="analista@empresa.com"></label>
+      <label>Contraseña<input type="password" formControlName="password" autocomplete="new-password" placeholder="Mínimo 10 caracteres"></label>
+      @if (error()) { <div class="form-error" role="alert">{{ error() }}</div> }
+      <button class="button button--primary" type="submit" [disabled]="loading()">{{ loading() ? 'Creando cuenta…' : 'Crear cuenta segura' }}</button>
+    </form>
+    <p class="auth-switch">¿Ya tienes acceso? <a routerLink="/login">Iniciar sesión</a></p>
+  </div></section>
+</main>

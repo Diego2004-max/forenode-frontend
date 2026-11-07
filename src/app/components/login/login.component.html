@@ -1,0 +1,28 @@
+<main class="auth-shell">
+  <section class="auth-story" aria-label="Presentación de Forenode AI">
+    <a class="brand brand--light" routerLink="/"><span class="brand__mark">F</span><span><strong>FORENODE AI</strong><small>ENTERPRISE CORE V4.0</small></span></a>
+    <div class="auth-story__content">
+      <span class="eyebrow eyebrow--light">Inteligencia agrícola operativa</span>
+      <h1>Anticipa la demanda.<br>Coordina la cosecha.</h1>
+      <p>Convierte clima, inventario y demanda histórica en decisiones logísticas verificables para la región.</p>
+      <div class="story-metrics"><span><strong>5</strong> nodos regionales</span><span><strong>24/7</strong> clima conectado</span><span><strong>100%</strong> trazabilidad</span></div>
+    </div>
+    <p class="auth-story__footer">Pasto · Nariño · Colombia</p>
+  </section>
+  <section class="auth-panel">
+    <div class="auth-card">
+      <span class="eyebrow">Acceso seguro</span><h2>Bienvenido de nuevo</h2>
+      <p class="auth-card__lead">Ingresa al centro de decisiones de tu red agrícola.</p>
+      <button class="button button--google" type="button" (click)="google()"><span class="google-mark">G</span> Continuar con Google</button>
+      <div class="divider"><span>o usa tu cuenta</span></div>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label>Correo electrónico<input type="email" formControlName="email" autocomplete="email" placeholder="analista@empresa.com"></label>
+        <label>Contraseña<input type="password" formControlName="password" autocomplete="current-password" placeholder="Mínimo 10 caracteres"></label>
+        @if (error()) { <div class="form-error" role="alert">{{ error() }}</div> }
+        <button class="button button--primary" type="submit" [disabled]="loading()">{{ loading() ? 'Validando acceso…' : 'Ingresar a Forenode' }}</button>
+      </form>
+      <p class="auth-switch">¿Aún no tienes cuenta? <a routerLink="/register">Crear cuenta</a></p>
+    </div>
+  </section>
+</main>
+
