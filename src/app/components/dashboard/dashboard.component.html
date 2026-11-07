@@ -1,0 +1,69 @@
+<div class="workspace">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand__mark">F</span><span><strong>FORENODE AI</strong><small>ENTERPRISE CORE V4.0</small></span></div>
+    <nav aria-label="Navegación principal">
+      <button class="nav-item nav-item--active"><span>⌁</span> Centro de decisiones</button>
+      <button class="nav-item"><span>◫</span> Fuentes de datos</button>
+      <button class="nav-item"><span>⌗</span> Modelos predictivos</button>
+    </nav>
+    <div class="sidebar__foot"><div class="status-dot"><i></i><span><strong>Sistema conectado</strong><small>Render · Supabase · Open-Meteo</small></span></div><button class="nav-item" (click)="logout()"><span>↗</span> Cerrar sesión</button></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div><span class="breadcrumb">Operaciones / Nariño</span><h1>Centro de decisiones agrícolas</h1></div>
+      <div class="topbar__actions"><button class="icon-button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Usar tema claro' : 'Usar tema oscuro'">{{ darkMode() ? '☀' : '☾' }}</button><div class="user"><span>{{ userName.charAt(0) }}</span><div><strong>{{ userName }}</strong><small>Analista regional</small></div></div></div>
+    </header>
+
+    <section class="control-deck">
+      <div><span class="eyebrow">Corrida predictiva</span><h2>¿Qué escenario quieres evaluar?</h2><p>Selecciona el nodo, la cadena agrícola y el horizonte. El motor usará únicamente fuentes trazables.</p></div>
+      <div class="controls">
+        <label>Nodo regional<select [(ngModel)]="selectedRegion"><option *ngFor="let region of regions()" [value]="region.code">{{ region.name }}</option></select></label>
+        <label>Producto<select [(ngModel)]="selectedProduct"><option *ngFor="let product of products()" [value]="product.code">{{ product.name }}</option></select></label>
+        <label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" [min]="today" [max]="maxDate"></label>
+        <button class="run-button" (click)="run()" [disabled]="loading() || !selectedRegion">{{ loading() ? 'Procesando…' : 'Ejecutar motor' }} <span>→</span></button>
+      </div>
+    </section>
+
+    @if (error()) {
+      <div class="alert" role="alert"><span>!</span><div><strong>El análisis necesita atención</strong><p>{{ error() }}</p></div><button (click)="inventoryOpen.set(true)">Registrar oferta</button></div>
+    }
+
+    @if (result(); as data) {
+      <section class="summary-row">
+        <article class="metric metric--hero"><span>Demanda prevista</span><strong>{{ data.predicted_demand_kg | number:'1.0-0' }} <small>kg</small></strong><p>Rango {{ data.demand_lower_kg | number:'1.0-0' }}–{{ data.demand_upper_kg | number:'1.0-0' }} kg</p></article>
+        <article class="metric"><span>Oferta verificada</span><strong>{{ data.available_supply_kg | number:'1.0-0' }} <small>kg</small></strong><p>Inventario con fuente registrada</p></article>
+        <article class="metric"><span>Brecha operativa</span><strong [class.negative]="data.gap_kg > 0">{{ absolute(data.gap_kg) | number:'1.0-0' }} <small>kg</small></strong><p>{{ data.gap_kg > 0 ? 'Faltante proyectado' : 'Excedente proyectado' }}</p></article>
+        <article class="metric"><span>Confianza validada</span><strong>{{ data.confidence_score | percent:'1.0-0' }}</strong><p>MAE histórico: {{ data.model_mae_kg | number:'1.0-0' }} kg</p></article>
+      </section>
+
+      <section class="insight-grid">
+        <article class="panel balance-panel">
+          <div class="panel__head"><div><span class="eyebrow">Balance regional</span><h3>Oferta frente a demanda</h3></div><span class="status-chip" [attr.data-status]="data.market_status">{{ statusLabel() }}</span></div>
+          <div class="bar-set"><div><span>Demanda prevista <b>{{ data.predicted_demand_kg | number:'1.0-0' }} kg</b></span><i><em style="width: 86%"></em></i></div><div><span>Oferta disponible <b>{{ data.available_supply_kg | number:'1.0-0' }} kg</b></span><i><em class="supply" [style.width.%]="data.available_supply_kg / data.predicted_demand_kg * 86"></em></i></div></div>
+          <div class="recommendation"><span>01</span><div><strong>Acción recomendada</strong><p>{{ data.explanation }}</p></div></div>
+        </article>
+        <article class="panel weather-panel">
+          <div class="panel__head"><div><span class="eyebrow">Open-Meteo</span><h3>Condición climática</h3></div><span class="live"><i></i>{{ data.weather.observed_or_forecast === 'forecast' ? 'Pronóstico' : 'Observado' }}</span></div>
+          <div class="weather-values"><div><span>Temperatura media</span><strong>{{ data.weather.temperature_c }}°</strong><small>Celsius</small></div><div><span>Precipitación</span><strong>{{ data.weather.precipitation_mm }}</strong><small>milímetros</small></div></div>
+          <p class="source-line">Fuente consultada para {{ data.target_date | date:'longDate':'UTC':'es-CO' }}</p>
+        </article>
+      </section>
+
+      <section class="trace"><div><span class="eyebrow">Trazabilidad de la corrida #{{ data.run_id }}</span><h3>Resultado reproducible y auditable</h3></div><dl><div><dt>Modelo</dt><dd>{{ data.model_version }}</dd></div><div><dt>Inventario</dt><dd>{{ data.inventory_source }}</dd></div><div><dt>Actualizado</dt><dd>{{ data.inventory_recorded_at | date:'medium':'America/Bogota':'es-CO' }}</dd></div></dl></section>
+    } @else if (!loading()) {
+      <section class="empty-state"><div class="empty-state__visual"><span></span><span></span><span></span><i>F</i></div><div><span class="eyebrow">Motor listo</span><h2>Construye tu primera lectura de mercado</h2><p>Ejecuta un escenario para visualizar demanda, oferta, incertidumbre y la acción logística recomendada.</p></div></section>
+    }
+  </main>
+
+  @if (inventoryOpen()) {
+    <div class="drawer-backdrop" (click)="inventoryOpen.set(false)"></div>
+    <aside class="drawer" aria-label="Registrar oferta disponible">
+      <button class="drawer__close" (click)="inventoryOpen.set(false)">×</button><span class="eyebrow">Fuente operativa</span><h2>Registrar oferta disponible</h2><p>Este dato alimentará el balance del nodo y quedará ligado a su fuente.</p>
+      <label>Cantidad disponible (kg)<input type="number" min="0" [(ngModel)]="inventoryQuantity" placeholder="Ej. 1250"></label>
+      <label>Referencia de la fuente<input [(ngModel)]="inventorySource" placeholder="Acta, lote, URL o sistema de origen"></label>
+      <div class="drawer__context"><span>Nodo<strong>{{ selectedRegion }}</strong></span><span>Producto<strong>{{ selectedProduct }}</strong></span></div>
+      <button class="run-button" (click)="saveInventory()" [disabled]="inventorySaving()">{{ inventorySaving() ? 'Guardando…' : 'Guardar y analizar' }}</button>
+    </aside>
+  }
+</div>
