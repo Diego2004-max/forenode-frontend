@@ -1,27 +1,24 @@
-# ForenodeFrontend
+# Forenode AI — Frontend
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Aplicación Angular 21 para operar el motor de inteligencia logística agrícola de Forenode AI Enterprise Core V4.0.
 
-## Development server
+## Capacidades
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Acceso con correo/contraseña y OAuth de Google mediante Supabase.
+- Bearer token añadido por interceptor y redirección segura ante una sesión expirada.
+- Catálogo regional servido por FastAPI.
+- Registro trazable de inventario y ejecución del matching.
+- Resultados con intervalo de demanda, error validado, clima y procedencia del inventario.
+- Temas claro/oscuro y diseño responsive.
 
-## Code scaffolding
+## Desarrollo
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```bash
+npm ci
+npm start
+npm test -- --watch=false
+npm run build
+```
 
-## Build
+La URL de API se define en `src/environments/environment.ts`. Vercel usa `vercel.json` para conservar las rutas de Angular y aplicar cabeceras de seguridad.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

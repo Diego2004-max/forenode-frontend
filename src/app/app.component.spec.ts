@@ -1,29 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { describe, expect, it } from 'vitest';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
-  beforeEach(async () => {
+  it('creates the application shell', async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideRouter([])]
     }).compileComponents();
-  });
-
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it(`should have the 'forenode-frontend' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('forenode-frontend');
-  });
-
-  it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, forenode-frontend');
+    expect(fixture.componentInstance).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('router-outlet')).toBeTruthy();
   });
 });
