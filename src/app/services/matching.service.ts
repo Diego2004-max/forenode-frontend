@@ -1,16 +1,24 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+import { environment } from '../../environments/environment';
+import { CatalogResponse, InventoryRequest, MatchingRequest, MatchingResponse } from '../models/api.models';
+
+@Injectable({ providedIn: 'root' })
 export class MatchingService {
-  private readonly API_URL = 'https://forenode-backend.onrender.com/api/v1/matching/engine';
+  constructor(private readonly http: HttpClient) {}
 
-  constructor(private http: HttpClient) {}
+  catalog(): Observable<CatalogResponse> {
+    return this.http.get<CatalogResponse>(`${environment.apiBaseUrl}/catalog`);
+  }
 
-  runEngine(payload: any): Observable<any> {
-    return this.http.post<any>(this.API_URL, payload);
+  run(request: MatchingRequest): Observable<MatchingResponse> {
+    return this.http.post<MatchingResponse>(`${environment.apiBaseUrl}/matching/engine`, request);
+  }
+
+  registerInventory(request: InventoryRequest): Observable<unknown> {
+    return this.http.post(`${environment.apiBaseUrl}/inventory`, request);
   }
 }
+

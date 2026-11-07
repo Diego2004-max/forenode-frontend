@@ -1,52 +1,93 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+import { environment } from '../../environments/environment';
+import { SessionResponse } from '../models/api.models';
+
+interface StoredSession {
+  token: string;
+  expiresAt: number;
+  fullName: string;
+  email: string;
+}
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API_URL = 'https://forenode-backend-odh7.onrender.com/api/v1';
+  private readonly storageKey = 'forenode.session';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private readonly http: HttpClient, private readonly router: Router) {}
 
-  login(credentials: any): Observable<any> {
-    const formData = new URLSearchParams();
-    formData.append('username', credentials.email);
-    formData.append('password', credentials.password);
-
-    return this.http.post<any>(`${this.API_URL}/login`, formData.toString(), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).pipe(
-      tap(res => {
-        localStorage.setItem('token', res.access_token);
-        localStorage.setItem('user_name', res.full_name);
-        localStorage.setItem('user_email', res.email);
-      })
-    );
+  login(email: string, password: string): Observable<SessionResponse> {
+    const body = new URLSearchParams({ username: email, password });
+    const headers = new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' });
+    return this.http.post<SessionResponse>(`${environment.apiBaseUrl}/auth/login`, body.toString(), { headers })
+      .pipe(tap((response) => this.saveApiSession(response)));
   }
 
-  register(data: any): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/register`, data).pipe(
-      tap(res => {
-        localStorage.setItem('token', res.access_token);
-        localStorage.setItem('user_name', res.full_name);
-        localStorage.setItem('user_email', res.email);
-      })
-    );
+  register(fullName: string, email: string, password: string): Observable<SessionResponse> {
+    return this.http.post<SessionResponse>(`${environment.apiBaseUrl}/auth/register`, {
+      full_name: fullName,
+      email,
+      password
+    }).pipe(tap((response) => this.saveApiSession(response)));
   }
 
-  logout(): void {
-    localStorage.clear();
-    this.router.navigate(['/login']);
+  startGoogleOAuth(): void {
+    const redirect = `${window.location.origin}/login`;
+    window.location.assign(`${environment.supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirect)}`);
+  }
+
+  captureOAuthCallback(hash: string): boolean {
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+    const token = params.get('access_token');
+    const expiresIn = Number(params.get('expires_in') ?? 3600);
+    if (!token) return false;
+    this.saveSession({ token, expiresAt: Date.now() + expiresIn * 1000, fullName: 'Analista', email: '' });
+    history.replaceState(null, '', location.pathname);
+    return true;
+  }
+
+  token(): string | null {
+    const session = this.session();
+    return session && session.expiresAt > Date.now() ? session.token : null;
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    return this.token() !== null;
   }
 
-  getUserName(): string {
-    return localStorage.getItem('user_name') || localStorage.getItem('user_email') || 'Analista Google';
+  userName(): string {
+    return this.session()?.fullName || 'Analista';
+  }
+
+  logout(redirect = true): void {
+    sessionStorage.removeItem(this.storageKey);
+    if (redirect) void this.router.navigate(['/login']);
+  }
+
+  private saveApiSession(response: SessionResponse): void {
+    this.saveSession({
+      token: response.access_token,
+      expiresAt: Date.now() + response.expires_in * 1000,
+      fullName: response.full_name,
+      email: response.email
+    });
+  }
+
+  private saveSession(session: StoredSession): void {
+    sessionStorage.setItem(this.storageKey, JSON.stringify(session));
+  }
+
+  private session(): StoredSession | null {
+    try {
+      const value = sessionStorage.getItem(this.storageKey);
+      return value ? JSON.parse(value) as StoredSession : null;
+    } catch {
+      sessionStorage.removeItem(this.storageKey);
+      return null;
+    }
   }
 }
+
