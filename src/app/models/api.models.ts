@@ -4,6 +4,7 @@ export interface SessionResponse {
   expires_in: number;
   full_name: string;
   email: string;
+  role: 'viewer' | 'analyst' | 'admin';
 }
 
 export interface Region {

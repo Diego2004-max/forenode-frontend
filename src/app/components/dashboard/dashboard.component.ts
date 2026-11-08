@@ -26,6 +26,7 @@ export class DashboardComponent implements OnInit {
   readonly darkMode = signal(localStorage.getItem('forenode.theme') === 'dark');
   readonly inventoryOpen = signal(false);
   readonly userName = this.auth.userName();
+  readonly userRole = this.auth.role();
   readonly today = this.dateOffset(0);
   readonly maxDate = this.dateOffset(16);
   readonly statusLabel = computed(() => ({

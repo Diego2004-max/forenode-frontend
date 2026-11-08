@@ -11,6 +11,7 @@ interface StoredSession {
   expiresAt: number;
   fullName: string;
   email: string;
+  role: 'viewer' | 'analyst' | 'admin';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -44,7 +45,7 @@ export class AuthService {
     const token = params.get('access_token');
     const expiresIn = Number(params.get('expires_in') ?? 3600);
     if (!token) return false;
-    this.saveSession({ token, expiresAt: Date.now() + expiresIn * 1000, fullName: 'Analista', email: '' });
+    this.saveSession({ token, expiresAt: Date.now() + expiresIn * 1000, fullName: 'Analista', email: '', role: 'viewer' });
     history.replaceState(null, '', location.pathname);
     return true;
   }
@@ -62,6 +63,9 @@ export class AuthService {
     return this.session()?.fullName || 'Analista';
   }
 
+  role(): StoredSession['role'] { return this.session()?.role ?? 'viewer'; }
+  isAdmin(): boolean { return this.role() === 'admin'; }
+
   logout(redirect = true): void {
     sessionStorage.removeItem(this.storageKey);
     if (redirect) void this.router.navigate(['/login']);
@@ -72,7 +76,8 @@ export class AuthService {
       token: response.access_token,
       expiresAt: Date.now() + response.expires_in * 1000,
       fullName: response.full_name,
-      email: response.email
+      email: response.email,
+      role: response.role
     });
   }
 
