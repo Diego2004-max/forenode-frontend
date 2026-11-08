@@ -27,6 +27,9 @@ export class DashboardComponent implements OnInit {
   readonly inventoryOpen = signal(false);
   readonly userName = this.auth.userName();
   readonly userRole = this.auth.role();
+  activeSection = 'decisions';
+  setSection(section: string): void { this.activeSection = section; }
+  roleLabel(): string { return this.userRole === 'admin' ? 'Administrador' : this.userRole === 'viewer' ? 'Cliente / productor' : 'Analista regional'; }
   readonly today = this.dateOffset(0);
   readonly maxDate = this.dateOffset(16);
   readonly statusLabel = computed(() => ({

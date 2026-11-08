@@ -2,9 +2,10 @@
   <aside class="sidebar">
     <div class="brand"><span class="brand__mark">F</span><span><strong>FORENODE AI</strong><small>ENTERPRISE CORE V4.0</small></span></div>
     <nav aria-label="Navegación principal">
-      <button class="nav-item nav-item--active"><span>⌁</span> Centro de decisiones</button>
-      <button class="nav-item"><span>◫</span> Fuentes de datos</button>
-      <button class="nav-item"><span>⌗</span> Modelos predictivos</button>
+      <button class="nav-item" [class.nav-item--active]="activeSection === 'decisions'" (click)="setSection('decisions')"><span>⌁</span> Centro de decisiones</button>
+      <button class="nav-item" [class.nav-item--active]="activeSection === 'sources'" (click)="setSection('sources'); inventoryOpen.set(true)"><span>◫</span> Fuentes de datos</button>
+      <button class="nav-item" [class.nav-item--active]="activeSection === 'models'" (click)="setSection('models'); error.set('El entrenamiento de modelos estará disponible desde el panel operativo.')"><span>⌗</span> Modelos predictivos</button>
+      @if (userRole === 'admin') { <button class="nav-item" [class.nav-item--active]="activeSection === 'admin'" (click)="setSection('admin')"><span>⚙</span> Administración</button> }
     </nav>
     <div class="sidebar__foot"><div class="status-dot"><i></i><span><strong>Sistema conectado</strong><small>Render · Supabase · Open-Meteo</small></span></div><button class="nav-item" (click)="logout()"><span>↗</span> Cerrar sesión</button></div>
   </aside>
@@ -12,7 +13,7 @@
   <main class="main">
     <header class="topbar">
       <div><span class="breadcrumb">Operaciones / Nariño</span><h1>Centro de decisiones agrícolas</h1></div>
-      <div class="topbar__actions"><button class="icon-button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Usar tema claro' : 'Usar tema oscuro'">{{ darkMode() ? '☀' : '☾' }}</button><div class="user"><span>{{ userName.charAt(0) }}</span><div><strong>{{ userName }}</strong><small>Analista regional</small></div></div></div>
+      <div class="topbar__actions"><button class="icon-button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Usar tema claro' : 'Usar tema oscuro'">{{ darkMode() ? '☀' : '☾' }}</button><div class="user"><span>{{ userName.charAt(0) }}</span><div><strong>{{ userName }}</strong><small>{{ roleLabel() }}</small></div></div></div>
     </header>
 
     <section class="control-deck">
