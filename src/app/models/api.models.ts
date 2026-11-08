@@ -88,3 +88,6 @@ export interface TrainingResponse {
   residual_p90_kg: number;
 }
 
+export interface AdminUser { id: number; email: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; }
+export interface AdminUserCreate { email: string; password: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; }
+

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingRequest, MatchingResponse, TrainingRequest, TrainingResponse } from '../models/api.models';
+import { AdminUser, AdminUserCreate, CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingRequest, MatchingResponse, TrainingRequest, TrainingResponse } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class MatchingService {
@@ -28,5 +28,9 @@ export class MatchingService {
   train(request: TrainingRequest): Observable<TrainingResponse> {
     return this.http.post<TrainingResponse>(`${environment.apiBaseUrl}/models/train`, request);
   }
+
+  users(): Observable<AdminUser[]> { return this.http.get<AdminUser[]>(`${environment.apiBaseUrl}/admin/users`); }
+  createUser(request: AdminUserCreate): Observable<AdminUser> { return this.http.post<AdminUser>(`${environment.apiBaseUrl}/admin/users`, request); }
+  updateRole(id: number, role: AdminUser['role']): Observable<AdminUser> { return this.http.patch<AdminUser>(`${environment.apiBaseUrl}/admin/users/${id}/role`, { role }); }
 }
 

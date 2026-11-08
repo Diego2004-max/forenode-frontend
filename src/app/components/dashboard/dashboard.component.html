@@ -16,6 +16,10 @@
       <div class="topbar__actions"><button class="icon-button" (click)="toggleTheme()" [attr.aria-label]="darkMode() ? 'Usar tema claro' : 'Usar tema oscuro'">{{ darkMode() ? '☀' : '☾' }}</button><div class="user"><span>{{ userName.charAt(0) }}</span><div><strong>{{ userName }}</strong><small>{{ roleLabel() }}</small></div></div></div>
     </header>
 
+    @if (activeSection === 'admin' && userRole === 'admin') {
+      <section class="panel admin-panel"><span class="eyebrow">Gobernanza</span><h2>Usuarios y permisos</h2><p>Administra clientes, analistas y administradores.</p><form class="admin-form" (ngSubmit)="createUser()"><input name="full_name" [(ngModel)]="newUser.full_name" placeholder="Nombre completo" required><input name="email" type="email" [(ngModel)]="newUser.email" placeholder="Correo" required><input name="password" type="password" [(ngModel)]="newUser.password" placeholder="Contraseña (mín. 10)" required><select name="role" [(ngModel)]="newUser.role"><option value="viewer">Cliente / productor</option><option value="analyst">Analista</option><option value="admin">Administrador</option></select><button class="run-button" type="submit">Crear usuario</button></form>@if (adminMessage()) { <div class="form-error">{{ adminMessage() }}</div> }<div class="user-table">@for (user of users(); track user.id) { <div class="user-row"><div><strong>{{ user.full_name }}</strong><small>{{ user.email }}</small></div><select [ngModel]="user.role" (ngModelChange)="changeRole(user, $event)"><option value="viewer">Cliente</option><option value="analyst">Analista</option><option value="admin">Admin</option></select></div> }</div></section>
+    }
+
     <section class="control-deck">
       <div><span class="eyebrow">Corrida predictiva</span><h2>¿Qué escenario quieres evaluar?</h2><p>Selecciona el nodo, la cadena agrícola y el horizonte. El motor usará únicamente fuentes trazables.</p></div>
       <div class="controls">

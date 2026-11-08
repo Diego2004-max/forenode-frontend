@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { MatchingResponse, Product, Region } from '../../models/api.models';
+import { AdminUser, MatchingResponse, Product, Region } from '../../models/api.models';
 import { AuthService } from '../../services/auth.service';
 import { MatchingService } from '../../services/matching.service';
 
@@ -27,9 +27,16 @@ export class DashboardComponent implements OnInit {
   readonly inventoryOpen = signal(false);
   readonly userName = this.auth.userName();
   readonly userRole = this.auth.role();
+  readonly users = signal<AdminUser[]>([]);
+  readonly adminLoading = signal(false);
+  readonly adminMessage = signal('');
+  newUser = { full_name: '', email: '', password: '', role: 'viewer' as AdminUser['role'] };
   activeSection = 'decisions';
   setSection(section: string): void { this.activeSection = section; }
   roleLabel(): string { return this.userRole === 'admin' ? 'Administrador' : this.userRole === 'viewer' ? 'Cliente / productor' : 'Analista regional'; }
+  loadUsers(): void { this.adminLoading.set(true); this.matching.users().subscribe({ next: users => { this.users.set(users); this.adminLoading.set(false); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar usuarios.'); this.adminLoading.set(false); } }); }
+  createUser(): void { this.adminMessage.set(''); this.matching.createUser(this.newUser).subscribe({ next: user => { this.users.update(items => [...items, user]); this.newUser = { full_name: '', email: '', password: '', role: 'viewer' }; }, error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible crear el usuario.') }); }
+  changeRole(user: AdminUser, role: AdminUser['role']): void { this.matching.updateRole(user.id, role).subscribe({ next: updated => this.users.update(items => items.map(item => item.id === updated.id ? updated : item)), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible actualizar el rol.') }); }
   readonly today = this.dateOffset(0);
   readonly maxDate = this.dateOffset(16);
   readonly statusLabel = computed(() => ({
