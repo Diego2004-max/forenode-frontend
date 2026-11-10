@@ -26,6 +26,7 @@ export class DashboardComponent implements OnInit {
   readonly models = signal<ModelSummary[]>([]);
   readonly nodes = signal<RegionNode[]>([]);
   readonly training = signal(false);
+  readonly demoPreparing = signal(false);
   readonly observationSaving = signal(false);
   readonly trainingResult = signal<TrainingResponse | null>(null);
   readonly coverage = signal<ObservationCoverage | null>(null);
@@ -51,6 +52,7 @@ export class DashboardComponent implements OnInit {
   availableProducts(regionCode: string): Product[] { const codes = new Set(this.availability().filter(item => item.region_code === regionCode && item.available).map(item => item.product_code)); return this.products().filter(product => codes.has(product.code)); }
   regionHasAvailableScenario(regionCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.available); }
   isScenarioAvailable(regionCode: string, productCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.product_code === productCode && item.available); }
+  isDemoScenario(regionCode: string, productCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.product_code === productCode && item.available && item.is_demo); }
   chooseRegion(region: Region): void { this.selectedRegion = region.code; const products = this.availableProducts(region.code); if (products.length && !products.some(product => product.code === this.selectedProduct)) this.selectedProduct = products[0].code; this.checkReadiness(); }
   chooseScenario(region: Region, product: Product): void { this.selectedRegion = region.code; this.selectedProduct = product.code; this.checkReadiness(); this.setSection('decisions'); }
   loadAvailability(): void { this.matching.availability().subscribe({ next: rows => { this.availability.set(rows); const first = rows.find(row => row.available); if (this.userRole === 'viewer' && first) { this.selectedRegion = first.region_code; this.selectedProduct = first.product_code; } this.checkReadiness(); }, error: () => this.availability.set([]) }); }
@@ -82,6 +84,17 @@ export class DashboardComponent implements OnInit {
       return;
     }
     this.training.set(true); this.adminMessage.set(''); this.matching.train({ product_code: this.selectedProduct, region_code: this.selectedRegion }).subscribe({ next: response => { this.trainingResult.set(response); this.training.set(false); this.loadModels(); this.loadAvailability(); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible entrenar el modelo con estos datos.'); this.training.set(false); } });
+  }
+  prepareDemoScenarios(): void {
+    this.demoPreparing.set(true); this.adminMessage.set('');
+    this.matching.bootstrapDemoModels().subscribe({
+      next: result => {
+        this.demoPreparing.set(false);
+        this.adminMessage.set(`${result.created_models} escenarios de prueba preparados. ${result.skipped_models} combinaciones existentes se conservaron.`);
+        this.loadModels(); this.loadAvailability(); this.checkReadiness();
+      },
+      error: err => { this.demoPreparing.set(false); this.adminMessage.set(err.error?.detail ?? 'No fue posible preparar los escenarios de prueba.'); }
+    });
   }
   readonly today = this.dateOffset(0);
   readonly maxDate = this.dateOffset(16);

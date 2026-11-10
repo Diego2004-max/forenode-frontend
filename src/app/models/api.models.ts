@@ -32,7 +32,7 @@ export interface MatchingRequest {
 }
 
 export interface MatchingReadiness { has_inventory: boolean; has_model: boolean; can_run: boolean; }
-export interface ScenarioAvailability { product_code: string; region_code: string; available: boolean; }
+export interface ScenarioAvailability { product_code: string; region_code: string; available: boolean; is_demo: boolean; }
 export interface ObservationCoverage { product_code: string; region_code: string; valid_observations: number; minimum_required: number; }
 
 export interface MatchingResponse {
@@ -60,6 +60,7 @@ export interface MatchingResponse {
   model_version: string;
   model_mae_kg: number;
   explanation: string;
+  is_demo: boolean;
 }
 
 export interface InventoryRequest {
@@ -91,8 +92,10 @@ export interface TrainingResponse {
   mae_kg: number;
   r2_score: number;
   residual_p90_kg: number;
+  is_demo: boolean;
 }
 export type ModelSummary = TrainingResponse;
+export interface DemoBootstrapResponse { created_models: number; skipped_models: number; }
 
 export interface AdminUser { id: number; email: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; is_active: boolean; }
 export interface AdminUserCreate { email: string; password: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; }

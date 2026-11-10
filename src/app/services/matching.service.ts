@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { AdminUser, AdminUserCreate, CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingReadiness, MatchingRequest, MatchingResponse, ModelSummary, ObservationCoverage, RegionNode, RegionNodeCreate, RegionNodeUpdate, ScenarioAvailability, TrainingRequest, TrainingResponse } from '../models/api.models';
+import { AdminUser, AdminUserCreate, CatalogResponse, DemoBootstrapResponse, DemandObservationRequest, InventoryRequest, MatchingReadiness, MatchingRequest, MatchingResponse, ModelSummary, ObservationCoverage, RegionNode, RegionNodeCreate, RegionNodeUpdate, ScenarioAvailability, TrainingRequest, TrainingResponse } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class MatchingService {
@@ -34,6 +34,7 @@ export class MatchingService {
   train(request: TrainingRequest): Observable<TrainingResponse> {
     return this.http.post<TrainingResponse>(`${environment.apiBaseUrl}/models/train`, request);
   }
+  bootstrapDemoModels(): Observable<DemoBootstrapResponse> { return this.http.post<DemoBootstrapResponse>(`${environment.apiBaseUrl}/models/demo-bootstrap`, {}); }
   models(): Observable<ModelSummary[]> { return this.http.get<ModelSummary[]>(`${environment.apiBaseUrl}/models`); }
   coverage(productCode: string, regionCode: string): Observable<ObservationCoverage> { return this.http.get<ObservationCoverage>(`${environment.apiBaseUrl}/models/coverage`, { params: { product_code: productCode, region_code: regionCode } }); }
   nodes(): Observable<RegionNode[]> { return this.http.get<RegionNode[]>(`${environment.apiBaseUrl}/admin/nodes`); }
