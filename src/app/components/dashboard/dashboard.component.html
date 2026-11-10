@@ -30,6 +30,11 @@
       </div>
     </section>
 
+    <section class="workflow-guide" aria-label="Guía de uso del motor">
+      <div class="workflow-guide__icon">i</div>
+      <div><span class="eyebrow">Antes de ejecutar</span><h3>Cómo funciona el análisis</h3><p>Forenode AI necesita una combinación con datos reales. El administrador registra observaciones de demanda, entrena el modelo y registra inventario vigente. Después cualquier usuario autorizado puede ejecutar el matching.</p><div class="workflow-steps"><span><b>1</b> Selecciona nodo y producto</span><span><b>2</b> Verifica modelo entrenado</span><span><b>3</b> Registra oferta disponible</span><span><b>4</b> Ejecuta el motor</span></div></div>
+    </section>
+
     @if (error()) {
       <div class="alert" role="alert"><span>!</span><div><strong>El análisis necesita atención</strong><p>{{ error() }}</p></div><button (click)="inventoryOpen.set(true)">Registrar oferta</button></div>
     }
