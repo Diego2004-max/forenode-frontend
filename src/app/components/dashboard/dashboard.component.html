@@ -4,10 +4,10 @@
     <nav aria-label="Navegación principal">
       <button class="nav-item" [class.nav-item--active]="activeSection === 'decisions'" (click)="setSection('decisions')"><span>⌁</span> Centro de decisiones</button>
       <button class="nav-item" [class.nav-item--active]="activeSection === 'sources'" (click)="setSection('sources'); inventoryOpen.set(true)"><span>◫</span> Fuentes de datos</button>
-      <button class="nav-item" [class.nav-item--active]="activeSection === 'models'" (click)="setSection('models'); error.set('El entrenamiento de modelos estará disponible desde el panel operativo.')"><span>⌗</span> Modelos predictivos</button>
+      @if (userRole !== 'viewer') { <button class="nav-item" [class.nav-item--active]="activeSection === 'models'" (click)="setSection('models'); loadModels()"><span>⌗</span> Modelos predictivos</button><button class="nav-item" [class.nav-item--active]="activeSection === 'nodes'" (click)="setSection('nodes'); loadNodes()"><span>⌖</span> Nodos regionales</button> }
       @if (userRole === 'admin') { <button class="nav-item" [class.nav-item--active]="activeSection === 'admin'" (click)="setSection('admin')"><span>⚙</span> Administración</button> }
     </nav>
-    <div class="sidebar__foot"><div class="status-dot"><i></i><span><strong>Sistema conectado</strong><small>Render · Supabase · Open-Meteo</small></span></div><button class="nav-item" (click)="logout()"><span>↗</span> Cerrar sesión</button></div>
+    <div class="sidebar__foot">@if (userRole !== 'viewer') { <div class="status-dot"><i></i><span><strong>Sistema conectado</strong><small>Render · Supabase · Open-Meteo</small></span></div> }<button class="nav-item" (click)="logout()"><span>↗</span> Cerrar sesión</button></div>
   </aside>
 
   <main class="main">
@@ -17,23 +17,27 @@
     </header>
 
     @if (activeSection === 'admin' && userRole === 'admin') {
-      <section class="panel admin-panel"><span class="eyebrow">Gobernanza</span><h2>Usuarios y permisos</h2><p>Administra clientes, analistas y administradores.</p><form class="admin-form" (ngSubmit)="createUser()"><input name="full_name" [(ngModel)]="newUser.full_name" placeholder="Nombre completo" required><input name="email" type="email" [(ngModel)]="newUser.email" placeholder="Correo" required><input name="password" type="password" [(ngModel)]="newUser.password" placeholder="Contraseña (mín. 10)" required><select name="role" [(ngModel)]="newUser.role"><option value="viewer">Cliente / productor</option><option value="analyst">Analista</option><option value="admin">Administrador</option></select><button class="run-button" type="submit">Crear usuario</button></form>@if (adminMessage()) { <div class="form-error">{{ adminMessage() }}</div> }<div class="user-table">@for (user of users(); track user.id) { <div class="user-row"><div><strong>{{ user.full_name }}</strong><small>{{ user.email }}</small></div><select [ngModel]="user.role" (ngModelChange)="changeRole(user, $event)"><option value="viewer">Cliente</option><option value="analyst">Analista</option><option value="admin">Admin</option></select></div> }</div></section>
+      <section class="panel admin-panel"><span class="eyebrow">Gobernanza</span><h2>Cuentas registradas</h2><p>Comparte el enlace para que la persona se registre. Después podrás editar sus datos, asignar rol o desactivar su acceso. La contraseña la crea y conserva cada usuario.</p><div class="admin-actions"><button class="run-button" type="button" (click)="copyRegistrationLink()">＋ Agregar cuenta</button><button class="secondary-button" type="button" (click)="loadUsers()">Actualizar lista</button></div>@if (adminMessage()) { <div class="form-error">{{ adminMessage() }}</div> }<div class="user-table">@for (user of users(); track user.id) { <div class="user-row" [class.user-row--inactive]="!user.is_active"><div class="user-fields"><input aria-label="Nombre" [(ngModel)]="user.full_name"><input aria-label="Correo" type="email" [(ngModel)]="user.email"><button class="secondary-button" type="button" (click)="saveUser(user)">Guardar cambios</button></div><div class="user-permissions"><select aria-label="Rol" [ngModel]="user.role" (ngModelChange)="changeRole(user, $event)"><option value="viewer">Cliente</option><option value="analyst">Analista</option><option value="admin">Admin</option></select><button class="secondary-button" type="button" (click)="setUserActive(user, !user.is_active)">{{ user.is_active ? 'Desactivar' : 'Reactivar' }}</button><small>{{ user.is_active ? 'Activa' : 'Desactivada' }}</small></div></div> } @empty { <p>Aún no hay cuentas registradas.</p> }</div></section>
     }
 
-    <section class="control-deck">
+    @if (activeSection === 'admin' && userRole === 'admin') { <section class="admin-overview"><article><span class="eyebrow">Modelos activos</span><strong>{{ models().length }}</strong><small>Entrenados con observaciones válidas</small></article><article><span class="eyebrow">Nodos disponibles</span><strong>{{ activeNodeCount() }}</strong><small>{{ activeNodeNames() }}</small></article></section> }
+
+    @if (activeSection === 'nodes' && userRole !== 'viewer') {
+      <section class="panel nodes-panel"><span class="eyebrow">Red regional</span><h2>Nodos y cobertura</h2><p>Los nodos activos aparecen en los escenarios. Registra coordenadas reales para consultar el clima correcto.</p><form class="node-create" (ngSubmit)="createNode()"><input name="nodeCode" [(ngModel)]="newNode.code" placeholder="Código (ej. sandona)" pattern="[a-z0-9-]{2,40}" required><input name="nodeName" [(ngModel)]="newNode.name" placeholder="Nombre del nodo" required><input name="nodeLatitude" type="number" step="any" min="-90" max="90" [(ngModel)]="newNode.latitude" placeholder="Latitud" required><input name="nodeLongitude" type="number" step="any" min="-180" max="180" [(ngModel)]="newNode.longitude" placeholder="Longitud" required><button class="run-button" type="submit">Agregar nodo</button></form>@if (adminMessage()) { <div class="form-error">{{ adminMessage() }}</div> }<div class="node-list">@for (node of nodes(); track node.id) { <article class="node-row" [class.user-row--inactive]="!node.is_active"><input aria-label="Nombre del nodo" [(ngModel)]="node.name"><input aria-label="Latitud" type="number" step="any" [(ngModel)]="node.latitude"><input aria-label="Longitud" type="number" step="any" [(ngModel)]="node.longitude"><span>{{ node.code }}</span><button class="secondary-button" type="button" (click)="updateNode(node)">Guardar</button><button class="secondary-button" type="button" (click)="updateNode(node, !node.is_active)">{{ node.is_active ? 'Desactivar' : 'Activar' }}</button></article> } @empty { <p>No hay nodos regionales registrados.</p> }</div></section>
+    } @else if (activeSection === 'models' && userRole !== 'viewer') {
+      <section class="panel models-panel"><span class="eyebrow">Operación de modelos</span><h2>Datos y entrenamiento</h2><p>Registra observaciones verificables de demanda. El sistema consulta el clima histórico de cada fecha y entrena cuando alcanza el mínimo requerido.</p><div class="model-selector"><label>Nodo<select [(ngModel)]="selectedRegion"><option *ngFor="let region of regions()" [value]="region.code">{{ region.name }}</option></select></label><label>Producto<select [(ngModel)]="selectedProduct"><option *ngFor="let product of products()" [value]="product.code">{{ product.name }}</option></select></label></div><form class="observation-form" (ngSubmit)="saveObservation()"><label>Fecha del registro<input type="date" name="observationDate" [(ngModel)]="observationDate" required></label><label>Demanda observada (kg)<input type="number" name="observedDemand" min="0.1" step="0.1" [(ngModel)]="observedDemand" required></label><label>Referencia verificable<input name="observationSource" [(ngModel)]="observationSource" placeholder="Reporte, lote, factura o fuente" required></label><button class="run-button" type="submit" [disabled]="observationSaving()">{{ observationSaving() ? 'Guardando…' : 'Registrar observación' }}</button></form><button class="run-button" type="button" (click)="trainModel()" [disabled]="training()">{{ training() ? 'Entrenando…' : 'Entrenar combinación seleccionada' }}</button>@if (trainingResult(); as model) { <div class="training-result"><strong>Modelo entrenado con {{ model.training_rows }} observaciones</strong><span>Error medio {{ model.mae_kg | number:'1.0-1' }} kg · R² {{ model.r2_score | number:'1.2-2' }}</span></div> }@if (adminMessage()) { <div class="form-error">{{ adminMessage() }}</div> }<h3>Modelos activos</h3><div class="model-list">@for (model of models(); track model.version) { <article><strong>{{ productName(model.product_code) }} · {{ regionName(model.region_code) }}</strong><span>{{ model.training_rows }} registros · MAE {{ model.mae_kg | number:'1.0-0' }} kg</span></article> } @empty { <p>No hay modelos activos entrenados con los datos disponibles.</p> }</div></section>
+    } @else if (activeSection === 'decisions' || activeSection === 'sources') {
+    <section class="control-deck" [hidden]="activeSection !== 'decisions'">
       <div><span class="eyebrow">Corrida predictiva</span><h2>¿Qué escenario quieres evaluar?</h2><p>Selecciona el nodo, la cadena agrícola y el horizonte. El motor usará únicamente fuentes trazables.</p></div>
       <div class="controls">
-        <label>Nodo regional<select [(ngModel)]="selectedRegion"><option *ngFor="let region of regions()" [value]="region.code">{{ region.name }}</option></select></label>
-        <label>Producto<select [(ngModel)]="selectedProduct"><option *ngFor="let product of products()" [value]="product.code">{{ product.name }}</option></select></label>
+        <label>Nodo regional<select [(ngModel)]="selectedRegion" (ngModelChange)="checkReadiness()"><option *ngFor="let region of regions()" [value]="region.code">{{ region.name }}</option></select></label>
+        <label>Producto<select [(ngModel)]="selectedProduct" (ngModelChange)="checkReadiness()"><option *ngFor="let product of products()" [value]="product.code">{{ product.name }}</option></select></label>
         <label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" [min]="today" [max]="maxDate"></label>
-        <button class="run-button" (click)="run()" [disabled]="loading() || !selectedRegion">{{ loading() ? 'Procesando…' : 'Ejecutar motor' }} <span>→</span></button>
+        @if (userRole !== 'viewer' || readiness()?.can_run) { <button class="run-button" (click)="run()" [disabled]="loading() || readinessLoading() || !selectedRegion">{{ loading() ? 'Procesando…' : 'Ejecutar motor' }} <span>→</span></button> }
       </div>
     </section>
 
-    @if (userRole === 'admin' || userRole === 'analyst') { <section class="workflow-guide" aria-label="Guía de uso del motor">
-      <div class="workflow-guide__icon">i</div>
-      <div><span class="eyebrow">Antes de ejecutar</span><h3>Cómo funciona el análisis</h3><p>Forenode AI necesita una combinación con datos reales. El administrador registra observaciones de demanda, entrena el modelo y registra inventario vigente. Después cualquier usuario autorizado puede ejecutar el matching.</p><div class="workflow-steps"><span><b>1</b> Selecciona nodo y producto</span><span><b>2</b> Verifica modelo entrenado</span><span><b>3</b> Registra oferta disponible</span><span><b>4</b> Ejecuta el motor</span></div></div>
-    </section> }
+    @if (userRole === 'viewer') { <section class="customer-steps" aria-label="Pasos del análisis"><button type="button" [class.step-complete]="readiness()?.has_inventory" [class.step-active]="!readiness()?.has_inventory" (click)="openDataStep()"><span>{{ readiness()?.has_inventory ? '✓' : '01' }}</span><strong>Cuéntanos qué tienes</strong><small>Registra tus kilos disponibles y su referencia.</small></button><button type="button" [class.step-complete]="!!result()" [class.step-active]="readiness()?.can_run && !result()" [disabled]="!readiness()?.can_run || loading()" (click)="run()"><span>{{ result() ? '✓' : '02' }}</span><strong>Consulta tu recomendación</strong><small>{{ readinessLoading() ? 'Verificando disponibilidad…' : readiness()?.can_run ? 'Ver el balance para tu zona y cultivo.' : readiness()?.has_inventory && !readiness()?.has_model ? 'La recomendación para este cultivo todavía no está disponible en esta zona.' : 'Completa el paso 1 para continuar.' }}</small></button></section> }
 
     @if (error()) {
       <div class="alert" role="alert"><span>!</span><div><strong>El análisis necesita atención</strong><p>{{ error() }}</p></div><button (click)="inventoryOpen.set(true)">Registrar oferta</button></div>
@@ -42,12 +46,12 @@
     @if (result(); as data) {
       <section class="summary-row">
         <article class="metric metric--hero"><span>Demanda prevista</span><strong>{{ data.predicted_demand_kg | number:'1.0-0' }} <small>kg</small></strong><p>Rango {{ data.demand_lower_kg | number:'1.0-0' }}–{{ data.demand_upper_kg | number:'1.0-0' }} kg</p></article>
-        <article class="metric"><span>Oferta verificada</span><strong>{{ data.available_supply_kg | number:'1.0-0' }} <small>kg</small></strong><p>Inventario con fuente registrada</p></article>
+        @if (userRole !== 'viewer') { <article class="metric"><span>Oferta verificada</span><strong>{{ data.available_supply_kg | number:'1.0-0' }} <small>kg</small></strong><p>Inventario con fuente registrada</p></article> }
         <article class="metric"><span>Brecha operativa</span><strong [class.negative]="data.gap_kg > 0">{{ absolute(data.gap_kg) | number:'1.0-0' }} <small>kg</small></strong><p>{{ data.gap_kg > 0 ? 'Faltante proyectado' : 'Excedente proyectado' }}</p></article>
-        <article class="metric"><span>Confianza validada</span><strong>{{ data.confidence_score | percent:'1.0-0' }}</strong><p>MAE histórico: {{ data.model_mae_kg | number:'1.0-0' }} kg</p></article>
+        @if (userRole !== 'viewer') { <article class="metric"><span>Confianza validada</span><strong>{{ data.confidence_score | percent:'1.0-0' }}</strong><p>MAE histórico: {{ data.model_mae_kg | number:'1.0-0' }} kg</p></article> }
       </section>
 
-      <section class="insight-grid">
+      <section class="insight-grid" [class.customer-insight]="userRole === 'viewer'">
         <article class="panel balance-panel">
           <div class="panel__head"><div><span class="eyebrow">Balance regional</span><h3>Oferta frente a demanda</h3></div><span class="status-chip" [attr.data-status]="data.market_status">{{ statusLabel() }}</span></div>
           <div class="bar-set"><div><span>Demanda prevista <b>{{ data.predicted_demand_kg | number:'1.0-0' }} kg</b></span><i><em style="width: 86%"></em></i></div><div><span>Oferta disponible <b>{{ data.available_supply_kg | number:'1.0-0' }} kg</b></span><i><em class="supply" [style.width.%]="data.available_supply_kg / data.predicted_demand_kg * 86"></em></i></div></div>
@@ -60,9 +64,10 @@
         </article>
       </section>
 
-      @if (userRole === 'admin' || userRole === 'analyst') { <section class="trace"><div><span class="eyebrow">Trazabilidad de la corrida #{{ data.run_id }}</span><h3>Resultado reproducible y auditable</h3></div><dl><div><dt>Modelo</dt><dd>{{ data.model_version }}</dd></div><div><dt>Inventario</dt><dd>{{ data.inventory_source }}</dd></div><div><dt>Actualizado</dt><dd>{{ data.inventory_recorded_at | date:'medium':'America/Bogota':'es-CO' }}</dd></div></dl></section> }
+      @if (userRole !== 'viewer') { <section class="trace"><div><span class="eyebrow">Trazabilidad de la corrida #{{ data.run_id }}</span><h3>Resultado reproducible y auditable</h3></div><dl><div><dt>Modelo</dt><dd>{{ data.model_version }}</dd></div><div><dt>Inventario</dt><dd>{{ data.inventory_source }}</dd></div><div><dt>Actualizado</dt><dd>{{ data.inventory_recorded_at | date:'medium':'America/Bogota':'es-CO' }}</dd></div></dl></section> }
     } @else if (!loading()) {
       <section class="empty-state"><div class="empty-state__visual"><span></span><span></span><span></span><i>F</i></div><div><span class="eyebrow">Motor listo</span><h2>Construye tu primera lectura de mercado</h2><p>Ejecuta un escenario para visualizar demanda, oferta, incertidumbre y la acción logística recomendada.</p></div></section>
+    }
     }
   </main>
 
@@ -73,7 +78,8 @@
       <label>Cantidad disponible (kg)<input type="number" min="0" [(ngModel)]="inventoryQuantity" placeholder="Ej. 1250"></label>
       <label>Referencia de la fuente<input [(ngModel)]="inventorySource" placeholder="Acta, lote, URL o sistema de origen"></label>
       <div class="drawer__context"><span>Nodo<strong>{{ selectedRegion }}</strong></span><span>Producto<strong>{{ selectedProduct }}</strong></span></div>
-      <button class="run-button" (click)="saveInventory()" [disabled]="inventorySaving()">{{ inventorySaving() ? 'Guardando…' : 'Guardar y analizar' }}</button>
+      <small class="source-hint">Registra la cantidad disponible y una referencia verificable, por ejemplo el número de lote, remisión o registro de bodega.</small>
+      <button class="run-button" (click)="saveInventory()" [disabled]="inventorySaving() || inventoryQuantity === null || inventoryQuantity <= 0 || inventorySource.trim().length < 3">{{ inventorySaving() ? 'Verificando fuente…' : 'Guardar fuente y analizar' }}</button>
     </aside>
   }
 </div>

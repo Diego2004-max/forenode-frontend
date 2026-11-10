@@ -30,6 +30,8 @@ export interface MatchingRequest {
   target_date: string;
 }
 
+export interface MatchingReadiness { has_inventory: boolean; has_model: boolean; can_run: boolean; }
+
 export interface MatchingResponse {
   run_id: number;
   product_code: string;
@@ -87,7 +89,11 @@ export interface TrainingResponse {
   r2_score: number;
   residual_p90_kg: number;
 }
+export type ModelSummary = TrainingResponse;
 
-export interface AdminUser { id: number; email: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; }
+export interface AdminUser { id: number; email: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; is_active: boolean; }
 export interface AdminUserCreate { email: string; password: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; }
+export interface RegionNode { id: number; code: string; name: string; latitude: number; longitude: number; is_active: boolean; }
+export interface RegionNodeCreate { code: string; name: string; latitude: number; longitude: number; }
+export interface RegionNodeUpdate { name: string; latitude: number; longitude: number; is_active: boolean; }
 

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { AdminUser, AdminUserCreate, CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingRequest, MatchingResponse, TrainingRequest, TrainingResponse } from '../models/api.models';
+import { AdminUser, AdminUserCreate, CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingReadiness, MatchingRequest, MatchingResponse, ModelSummary, RegionNode, RegionNodeCreate, RegionNodeUpdate, TrainingRequest, TrainingResponse } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class MatchingService {
@@ -17,6 +17,11 @@ export class MatchingService {
     return this.http.post<MatchingResponse>(`${environment.apiBaseUrl}/matching/engine`, request);
   }
 
+  readiness(productCode: string, regionCode: string): Observable<MatchingReadiness> {
+    const params = { product_code: productCode, region_code: regionCode };
+    return this.http.get<MatchingReadiness>(`${environment.apiBaseUrl}/matching/readiness`, { params });
+  }
+
   registerInventory(request: InventoryRequest): Observable<unknown> {
     return this.http.post(`${environment.apiBaseUrl}/inventory`, request);
   }
@@ -28,9 +33,16 @@ export class MatchingService {
   train(request: TrainingRequest): Observable<TrainingResponse> {
     return this.http.post<TrainingResponse>(`${environment.apiBaseUrl}/models/train`, request);
   }
+  models(): Observable<ModelSummary[]> { return this.http.get<ModelSummary[]>(`${environment.apiBaseUrl}/models`); }
+  nodes(): Observable<RegionNode[]> { return this.http.get<RegionNode[]>(`${environment.apiBaseUrl}/admin/nodes`); }
+  createNode(data: RegionNodeCreate): Observable<RegionNode> { return this.http.post<RegionNode>(`${environment.apiBaseUrl}/admin/nodes`, data); }
+  updateNode(id: number, data: RegionNodeUpdate): Observable<RegionNode> { return this.http.patch<RegionNode>(`${environment.apiBaseUrl}/admin/nodes/${id}`, data); }
 
   users(): Observable<AdminUser[]> { return this.http.get<AdminUser[]>(`${environment.apiBaseUrl}/admin/users`); }
+  currentUser(): Observable<AdminUser> { return this.http.get<AdminUser>(`${environment.apiBaseUrl}/auth/me`); }
   createUser(request: AdminUserCreate): Observable<AdminUser> { return this.http.post<AdminUser>(`${environment.apiBaseUrl}/admin/users`, request); }
   updateRole(id: number, role: AdminUser['role']): Observable<AdminUser> { return this.http.patch<AdminUser>(`${environment.apiBaseUrl}/admin/users/${id}/role`, { role }); }
+  updateUser(id: number, fullName: string, email: string): Observable<AdminUser> { return this.http.patch<AdminUser>(`${environment.apiBaseUrl}/admin/users/${id}`, { full_name: fullName, email }); }
+  setUserStatus(id: number, isActive: boolean): Observable<AdminUser> { return this.http.patch<AdminUser>(`${environment.apiBaseUrl}/admin/users/${id}/status`, { is_active: isActive }); }
 }
 
