@@ -30,10 +30,10 @@
       </div>
     </section>
 
-    <section class="workflow-guide" aria-label="Guía de uso del motor">
+    @if (userRole === 'admin' || userRole === 'analyst') { <section class="workflow-guide" aria-label="Guía de uso del motor">
       <div class="workflow-guide__icon">i</div>
       <div><span class="eyebrow">Antes de ejecutar</span><h3>Cómo funciona el análisis</h3><p>Forenode AI necesita una combinación con datos reales. El administrador registra observaciones de demanda, entrena el modelo y registra inventario vigente. Después cualquier usuario autorizado puede ejecutar el matching.</p><div class="workflow-steps"><span><b>1</b> Selecciona nodo y producto</span><span><b>2</b> Verifica modelo entrenado</span><span><b>3</b> Registra oferta disponible</span><span><b>4</b> Ejecuta el motor</span></div></div>
-    </section>
+    </section> }
 
     @if (error()) {
       <div class="alert" role="alert"><span>!</span><div><strong>El análisis necesita atención</strong><p>{{ error() }}</p></div><button (click)="inventoryOpen.set(true)">Registrar oferta</button></div>
@@ -60,7 +60,7 @@
         </article>
       </section>
 
-      <section class="trace"><div><span class="eyebrow">Trazabilidad de la corrida #{{ data.run_id }}</span><h3>Resultado reproducible y auditable</h3></div><dl><div><dt>Modelo</dt><dd>{{ data.model_version }}</dd></div><div><dt>Inventario</dt><dd>{{ data.inventory_source }}</dd></div><div><dt>Actualizado</dt><dd>{{ data.inventory_recorded_at | date:'medium':'America/Bogota':'es-CO' }}</dd></div></dl></section>
+      @if (userRole === 'admin' || userRole === 'analyst') { <section class="trace"><div><span class="eyebrow">Trazabilidad de la corrida #{{ data.run_id }}</span><h3>Resultado reproducible y auditable</h3></div><dl><div><dt>Modelo</dt><dd>{{ data.model_version }}</dd></div><div><dt>Inventario</dt><dd>{{ data.inventory_source }}</dd></div><div><dt>Actualizado</dt><dd>{{ data.inventory_recorded_at | date:'medium':'America/Bogota':'es-CO' }}</dd></div></dl></section> }
     } @else if (!loading()) {
       <section class="empty-state"><div class="empty-state__visual"><span></span><span></span><span></span><i>F</i></div><div><span class="eyebrow">Motor listo</span><h2>Construye tu primera lectura de mercado</h2><p>Ejecuta un escenario para visualizar demanda, oferta, incertidumbre y la acción logística recomendada.</p></div></section>
     }

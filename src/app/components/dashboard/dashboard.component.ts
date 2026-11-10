@@ -66,7 +66,7 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true); this.error.set('');
     this.matching.run({ product_code: this.selectedProduct, region_code: this.selectedRegion, target_date: this.targetDate }).subscribe({
       next: (response) => { this.result.set(response); this.loading.set(false); },
-      error: (error: HttpErrorResponse) => { this.error.set(error.error?.detail ?? 'El motor no pudo completar el análisis.'); this.loading.set(false); }
+      error: (error: HttpErrorResponse) => { this.error.set(error.status === 409 ? 'Este escenario aún no está disponible para esta zona y producto. Selecciona una combinación preparada por el equipo operativo.' : error.error?.detail ?? 'El motor no pudo completar el análisis.'); this.loading.set(false); }
     });
   }
 
