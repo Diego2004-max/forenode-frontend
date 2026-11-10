@@ -39,6 +39,7 @@ export class DashboardComponent implements OnInit {
   readonly users = signal<AdminUser[]>([]);
   readonly adminLoading = signal(false);
   readonly adminMessage = signal('');
+  readonly userManagementMessage = signal('');
   activeSection = 'decisions';
   setSection(section: string): void { this.activeSection = section; }
   roleLabel(): string { return this.userRole === 'admin' ? 'Administrador' : this.userRole === 'viewer' ? 'Cliente / productor' : 'Analista regional'; }
@@ -53,7 +54,7 @@ export class DashboardComponent implements OnInit {
   chooseRegion(region: Region): void { this.selectedRegion = region.code; const products = this.availableProducts(region.code); if (products.length && !products.some(product => product.code === this.selectedProduct)) this.selectedProduct = products[0].code; this.checkReadiness(); }
   chooseScenario(region: Region, product: Product): void { this.selectedRegion = region.code; this.selectedProduct = product.code; this.checkReadiness(); this.setSection('decisions'); }
   loadAvailability(): void { this.matching.availability().subscribe({ next: rows => { this.availability.set(rows); const first = rows.find(row => row.available); if (this.userRole === 'viewer' && first) { this.selectedRegion = first.region_code; this.selectedProduct = first.product_code; } this.checkReadiness(); }, error: () => this.availability.set([]) }); }
-  loadUsers(): void { this.adminLoading.set(true); this.matching.users().subscribe({ next: users => { this.users.set(users); this.adminLoading.set(false); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar usuarios.'); this.adminLoading.set(false); } }); }
+  loadUsers(): void { this.adminLoading.set(true); this.userManagementMessage.set(''); this.matching.users().subscribe({ next: users => { this.users.set(users); this.adminLoading.set(false); }, error: err => { this.userManagementMessage.set(err.error?.detail ?? 'No fue posible cargar usuarios.'); this.adminLoading.set(false); } }); }
   loadModels(): void { this.matching.models().subscribe({ next: models => this.models.set(models), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar los modelos activos.') }); }
   loadCoverage(): void { this.matching.coverage(this.selectedProduct, this.selectedRegion).subscribe({ next: result => this.coverage.set(result), error: () => this.coverage.set(null) }); }
   loadNodes(): void { this.matching.nodes().subscribe({ next: nodes => this.nodes.set(nodes), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar los nodos.') }); }
@@ -62,11 +63,11 @@ export class DashboardComponent implements OnInit {
     this.matching.createNode({ ...this.newNode, latitude: this.newNode.latitude, longitude: this.newNode.longitude }).subscribe({ next: node => { this.nodes.update(items => [...items, node]); this.newNode = { code: '', name: '', latitude: null, longitude: null }; this.matching.catalog().subscribe(catalog => this.regions.set(catalog.regions)); }, error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible crear el nodo.') });
   }
   updateNode(node: RegionNode, isActive = node.is_active): void { this.matching.updateNode(node.id, { name: node.name, latitude: node.latitude, longitude: node.longitude, is_active: isActive }).subscribe({ next: updated => { this.nodes.update(items => items.map(item => item.id === updated.id ? updated : item)); this.matching.catalog().subscribe(catalog => this.regions.set(catalog.regions)); }, error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible guardar el nodo.') }); }
-  createUser(): void { this.adminMessage.set('La persona debe registrarse primero desde la página de acceso. Luego aparecerá aquí para que puedas asignarle un rol.'); this.loadUsers(); }
-  changeRole(user: AdminUser, role: AdminUser['role']): void { this.matching.updateRole(user.id, role).subscribe({ next: updated => this.users.update(items => items.map(item => item.id === updated.id ? updated : item)), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible actualizar el rol.') }); }
-  saveUser(user: AdminUser): void { this.matching.updateUser(user.id, user.full_name, user.email).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.adminMessage.set('Cuenta actualizada.'); }, error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible actualizar la cuenta.') }); }
-  setUserActive(user: AdminUser, isActive: boolean): void { this.matching.setUserStatus(user.id, isActive).subscribe({ next: updated => this.users.update(items => items.map(item => item.id === updated.id ? updated : item)), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible cambiar el estado de la cuenta.') }); }
-  async copyRegistrationLink(): Promise<void> { await navigator.clipboard.writeText(`${location.origin}/register`); this.adminMessage.set('Enlace de registro copiado. Cuando la persona cree y confirme su cuenta, aparecerá en esta lista.'); }
+  createUser(): void { this.userManagementMessage.set('La persona debe registrarse primero desde la página de acceso. Luego aparecerá aquí para que puedas asignarle un rol.'); this.loadUsers(); }
+  changeRole(user: AdminUser, role: AdminUser['role']): void { this.matching.updateRole(user.id, role).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set('Rol actualizado.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar el rol.') }); }
+  saveUser(user: AdminUser): void { this.matching.updateUser(user.id, user.full_name, user.email).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set('Cuenta actualizada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar la cuenta.') }); }
+  setUserActive(user: AdminUser, isActive: boolean): void { this.matching.setUserStatus(user.id, isActive).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set(isActive ? 'Cuenta reactivada.' : 'Cuenta desactivada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible cambiar el estado de la cuenta.') }); }
+  async copyRegistrationLink(): Promise<void> { await navigator.clipboard.writeText(`${location.origin}/register`); this.userManagementMessage.set('Enlace de registro copiado. Cuando la persona cree su cuenta, aparecerá en esta lista.'); }
   saveObservation(): void {
     if (this.observedDemand === null || this.observedDemand <= 0 || this.observationSource.trim().length < 3) return;
     const payload: DemandObservationRequest = { product_code: this.selectedProduct, region_code: this.selectedRegion, observed_on: this.observationDate, demand_kg: this.observedDemand, source_reference: this.observationSource.trim() };
@@ -91,6 +92,7 @@ export class DashboardComponent implements OnInit {
   selectedRegion = '';
   selectedProduct = '';
   targetDate = this.today;
+  evaluatedSupply: number | null = null;
   inventoryQuantity: number | null = null;
   inventorySource = '';
   observationDate = this.dateOffset(-30);
@@ -119,13 +121,16 @@ export class DashboardComponent implements OnInit {
   }
 
   run(): void {
-    if (!this.selectedRegion || !this.selectedProduct) return;
+    if (!this.selectedRegion || !this.selectedProduct || this.evaluatedSupply === null || this.evaluatedSupply <= 0) {
+      this.error.set('Ingresa la cantidad que deseas evaluar antes de ejecutar el motor.');
+      return;
+    }
     if (!this.readiness()?.can_run) {
       this.error.set('Esta combinación necesita un modelo entrenado y una oferta vigente antes de ejecutar el análisis.');
       return;
     }
     this.result.set(null); this.loading.set(true); this.error.set('');
-    this.matching.run({ product_code: this.selectedProduct, region_code: this.selectedRegion, target_date: this.targetDate }).subscribe({
+    this.matching.run({ product_code: this.selectedProduct, region_code: this.selectedRegion, target_date: this.targetDate, evaluated_supply_kg: this.evaluatedSupply }).subscribe({
       next: (response) => { this.result.set(response); this.loading.set(false); },
       error: (error: HttpErrorResponse) => { this.error.set(error.status === 409 ? error.error?.detail ?? 'Completa los datos de disponibilidad antes de continuar.' : error.error?.detail ?? 'El motor no pudo completar el análisis.'); this.loading.set(false); }
     });

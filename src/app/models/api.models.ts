@@ -28,6 +28,7 @@ export interface MatchingRequest {
   product_code: string;
   region_code: string;
   target_date: string;
+  evaluated_supply_kg: number;
 }
 
 export interface MatchingReadiness { has_inventory: boolean; has_model: boolean; can_run: boolean; }
