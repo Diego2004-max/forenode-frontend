@@ -112,6 +112,10 @@ export class DashboardComponent implements OnInit {
 
   run(): void {
     if (!this.selectedRegion || !this.selectedProduct) return;
+    if (!this.readiness()?.can_run) {
+      this.error.set('Esta combinación necesita un modelo entrenado y una oferta vigente antes de ejecutar el análisis.');
+      return;
+    }
     this.result.set(null); this.loading.set(true); this.error.set('');
     this.matching.run({ product_code: this.selectedProduct, region_code: this.selectedRegion, target_date: this.targetDate }).subscribe({
       next: (response) => { this.result.set(response); this.loading.set(false); },
