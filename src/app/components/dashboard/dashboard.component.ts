@@ -73,7 +73,15 @@ export class DashboardComponent implements OnInit {
     this.observationSaving.set(true); this.adminMessage.set('');
     this.matching.registerObservation(payload).subscribe({ next: () => { this.observationSaving.set(false); this.observedDemand = null; this.observationSource = ''; this.trainingResult.set(null); this.loadCoverage(); this.adminMessage.set('Observación registrada.'); }, error: err => { this.observationSaving.set(false); this.adminMessage.set(err.error?.detail ?? 'No fue posible registrar la observación.'); } });
   }
-  trainModel(): void { this.training.set(true); this.adminMessage.set(''); this.matching.train({ product_code: this.selectedProduct, region_code: this.selectedRegion }).subscribe({ next: response => { this.trainingResult.set(response); this.training.set(false); this.loadModels(); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible entrenar el modelo con estos datos.'); this.training.set(false); } }); }
+  canTrain(): boolean { const data = this.coverage(); return !!data && data.valid_observations >= data.minimum_required; }
+  remainingObservations(): number { const data = this.coverage(); return data ? Math.max(0, data.minimum_required - data.valid_observations) : 0; }
+  trainModel(): void {
+    if (!this.canTrain()) {
+      this.adminMessage.set(`Faltan ${this.remainingObservations()} observaciones válidas para entrenar esta combinación.`);
+      return;
+    }
+    this.training.set(true); this.adminMessage.set(''); this.matching.train({ product_code: this.selectedProduct, region_code: this.selectedRegion }).subscribe({ next: response => { this.trainingResult.set(response); this.training.set(false); this.loadModels(); this.loadAvailability(); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible entrenar el modelo con estos datos.'); this.training.set(false); } });
+  }
   readonly today = this.dateOffset(0);
   readonly maxDate = this.dateOffset(16);
   readonly statusLabel = computed(() => ({
