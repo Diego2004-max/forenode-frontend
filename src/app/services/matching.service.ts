@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { AdminUser, AdminUserCreate, CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingReadiness, MatchingRequest, MatchingResponse, ModelSummary, RegionNode, RegionNodeCreate, RegionNodeUpdate, TrainingRequest, TrainingResponse } from '../models/api.models';
+import { AdminUser, AdminUserCreate, CatalogResponse, DemandObservationRequest, InventoryRequest, MatchingReadiness, MatchingRequest, MatchingResponse, ModelSummary, ObservationCoverage, RegionNode, RegionNodeCreate, RegionNodeUpdate, ScenarioAvailability, TrainingRequest, TrainingResponse } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
 export class MatchingService {
@@ -21,6 +21,7 @@ export class MatchingService {
     const params = { product_code: productCode, region_code: regionCode };
     return this.http.get<MatchingReadiness>(`${environment.apiBaseUrl}/matching/readiness`, { params });
   }
+  availability(): Observable<ScenarioAvailability[]> { return this.http.get<ScenarioAvailability[]>(`${environment.apiBaseUrl}/matching/availability`); }
 
   registerInventory(request: InventoryRequest): Observable<unknown> {
     return this.http.post(`${environment.apiBaseUrl}/inventory`, request);
@@ -34,6 +35,7 @@ export class MatchingService {
     return this.http.post<TrainingResponse>(`${environment.apiBaseUrl}/models/train`, request);
   }
   models(): Observable<ModelSummary[]> { return this.http.get<ModelSummary[]>(`${environment.apiBaseUrl}/models`); }
+  coverage(productCode: string, regionCode: string): Observable<ObservationCoverage> { return this.http.get<ObservationCoverage>(`${environment.apiBaseUrl}/models/coverage`, { params: { product_code: productCode, region_code: regionCode } }); }
   nodes(): Observable<RegionNode[]> { return this.http.get<RegionNode[]>(`${environment.apiBaseUrl}/admin/nodes`); }
   createNode(data: RegionNodeCreate): Observable<RegionNode> { return this.http.post<RegionNode>(`${environment.apiBaseUrl}/admin/nodes`, data); }
   updateNode(id: number, data: RegionNodeUpdate): Observable<RegionNode> { return this.http.patch<RegionNode>(`${environment.apiBaseUrl}/admin/nodes/${id}`, data); }

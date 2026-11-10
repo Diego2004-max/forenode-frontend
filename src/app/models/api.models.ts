@@ -31,6 +31,8 @@ export interface MatchingRequest {
 }
 
 export interface MatchingReadiness { has_inventory: boolean; has_model: boolean; can_run: boolean; }
+export interface ScenarioAvailability { product_code: string; region_code: string; available: boolean; }
+export interface ObservationCoverage { product_code: string; region_code: string; valid_observations: number; minimum_required: number; }
 
 export interface MatchingResponse {
   run_id: number;

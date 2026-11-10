@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { AdminUser, DemandObservationRequest, MatchingReadiness, MatchingResponse, ModelSummary, Product, Region, RegionNode, TrainingResponse } from '../../models/api.models';
+import { AdminUser, DemandObservationRequest, MatchingReadiness, MatchingResponse, ModelSummary, ObservationCoverage, Product, Region, RegionNode, ScenarioAvailability, TrainingResponse } from '../../models/api.models';
 import { AuthService } from '../../services/auth.service';
 import { MatchingService } from '../../services/matching.service';
 
@@ -21,12 +21,14 @@ export class DashboardComponent implements OnInit {
   readonly products = signal<Product[]>([]);
   readonly result = signal<MatchingResponse | null>(null);
   readonly readiness = signal<MatchingReadiness | null>(null);
+  readonly availability = signal<ScenarioAvailability[]>([]);
   readonly readinessLoading = signal(false);
   readonly models = signal<ModelSummary[]>([]);
   readonly nodes = signal<RegionNode[]>([]);
   readonly training = signal(false);
   readonly observationSaving = signal(false);
   readonly trainingResult = signal<TrainingResponse | null>(null);
+  readonly coverage = signal<ObservationCoverage | null>(null);
   readonly loading = signal(false);
   readonly inventorySaving = signal(false);
   readonly error = signal('');
@@ -44,8 +46,16 @@ export class DashboardComponent implements OnInit {
   regionName(code: string): string { return this.regions().find(item => item.code === code)?.name ?? code; }
   activeNodeCount(): number { return this.nodes().filter(node => node.is_active).length; }
   activeNodeNames(): string { return this.nodes().filter(node => node.is_active).map(node => node.name).join(' · '); }
+  availableRegions(): Region[] { return this.regions().filter(region => this.availability().some(item => item.region_code === region.code && item.available)); }
+  availableProducts(regionCode: string): Product[] { const codes = new Set(this.availability().filter(item => item.region_code === regionCode && item.available).map(item => item.product_code)); return this.products().filter(product => codes.has(product.code)); }
+  regionHasAvailableScenario(regionCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.available); }
+  isScenarioAvailable(regionCode: string, productCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.product_code === productCode && item.available); }
+  chooseRegion(region: Region): void { this.selectedRegion = region.code; const products = this.availableProducts(region.code); if (products.length && !products.some(product => product.code === this.selectedProduct)) this.selectedProduct = products[0].code; this.checkReadiness(); }
+  chooseScenario(region: Region, product: Product): void { this.selectedRegion = region.code; this.selectedProduct = product.code; this.checkReadiness(); this.setSection('decisions'); }
+  loadAvailability(): void { this.matching.availability().subscribe({ next: rows => { this.availability.set(rows); const first = rows.find(row => row.available); if (this.userRole === 'viewer' && first) { this.selectedRegion = first.region_code; this.selectedProduct = first.product_code; } this.checkReadiness(); }, error: () => this.availability.set([]) }); }
   loadUsers(): void { this.adminLoading.set(true); this.matching.users().subscribe({ next: users => { this.users.set(users); this.adminLoading.set(false); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar usuarios.'); this.adminLoading.set(false); } }); }
   loadModels(): void { this.matching.models().subscribe({ next: models => this.models.set(models), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar los modelos activos.') }); }
+  loadCoverage(): void { this.matching.coverage(this.selectedProduct, this.selectedRegion).subscribe({ next: result => this.coverage.set(result), error: () => this.coverage.set(null) }); }
   loadNodes(): void { this.matching.nodes().subscribe({ next: nodes => this.nodes.set(nodes), error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible cargar los nodos.') }); }
   createNode(): void {
     if (this.newNode.latitude === null || this.newNode.longitude === null) return;
@@ -61,7 +71,7 @@ export class DashboardComponent implements OnInit {
     if (this.observedDemand === null || this.observedDemand <= 0 || this.observationSource.trim().length < 3) return;
     const payload: DemandObservationRequest = { product_code: this.selectedProduct, region_code: this.selectedRegion, observed_on: this.observationDate, demand_kg: this.observedDemand, source_reference: this.observationSource.trim() };
     this.observationSaving.set(true); this.adminMessage.set('');
-    this.matching.registerObservation(payload).subscribe({ next: () => { this.observationSaving.set(false); this.observedDemand = null; this.observationSource = ''; this.trainingResult.set(null); this.adminMessage.set('Observación registrada. Se requieren al menos 12 registros para entrenar esta combinación.'); }, error: err => { this.observationSaving.set(false); this.adminMessage.set(err.error?.detail ?? 'No fue posible registrar la observación.'); } });
+    this.matching.registerObservation(payload).subscribe({ next: () => { this.observationSaving.set(false); this.observedDemand = null; this.observationSource = ''; this.trainingResult.set(null); this.loadCoverage(); this.adminMessage.set('Observación registrada.'); }, error: err => { this.observationSaving.set(false); this.adminMessage.set(err.error?.detail ?? 'No fue posible registrar la observación.'); } });
   }
   trainModel(): void { this.training.set(true); this.adminMessage.set(''); this.matching.train({ product_code: this.selectedProduct, region_code: this.selectedRegion }).subscribe({ next: response => { this.trainingResult.set(response); this.training.set(false); this.loadModels(); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible entrenar el modelo con estos datos.'); this.training.set(false); } }); }
   readonly today = this.dateOffset(0);
@@ -83,7 +93,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     document.documentElement.classList.toggle('dark', this.darkMode());
     this.matching.currentUser().subscribe({
-      next: profile => { this.userRole = profile.role; this.userName = profile.full_name; if (profile.role === 'admin') this.loadUsers(); if (profile.role === 'admin' || profile.role === 'analyst') { this.loadModels(); this.loadNodes(); } },
+      next: profile => { this.userRole = profile.role; this.userName = profile.full_name; if (profile.role === 'admin') this.loadUsers(); if (profile.role === 'admin' || profile.role === 'analyst') { this.loadModels(); this.loadNodes(); } else this.loadAvailability(); },
       error: () => this.error.set('No se pudo validar el perfil. Recarga la página para volver a intentar.')
     });
     if (this.userRole === 'admin' || this.userRole === 'analyst') this.loadModels();
@@ -92,6 +102,8 @@ export class DashboardComponent implements OnInit {
         this.regions.set(catalog.regions); this.products.set(catalog.products);
         this.selectedRegion = catalog.regions[0]?.code ?? '';
         this.selectedProduct = catalog.products[0]?.code ?? '';
+        const firstAvailable = this.availability().find(row => row.available);
+        if (this.userRole === 'viewer' && firstAvailable) { this.selectedRegion = firstAvailable.region_code; this.selectedProduct = firstAvailable.product_code; }
         this.checkReadiness();
       },
       error: () => this.error.set('No fue posible cargar el catálogo operativo.')
