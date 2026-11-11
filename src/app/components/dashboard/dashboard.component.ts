@@ -40,6 +40,7 @@ export class DashboardComponent implements OnInit {
   readonly adminLoading = signal(false);
   readonly adminMessage = signal('');
   readonly userManagementMessage = signal('');
+  readonly editingUserId = signal<number | null>(null);
   activeSection = 'decisions';
   setSection(section: string): void { this.activeSection = section; }
   roleLabel(): string { return this.userRole === 'admin' ? 'Administrador' : this.userRole === 'viewer' ? 'Cliente / productor' : 'Analista regional'; }
@@ -65,7 +66,9 @@ export class DashboardComponent implements OnInit {
   updateNode(node: RegionNode, isActive = node.is_active): void { this.matching.updateNode(node.id, { name: node.name, latitude: node.latitude, longitude: node.longitude, is_active: isActive }).subscribe({ next: updated => { this.nodes.update(items => items.map(item => item.id === updated.id ? updated : item)); this.matching.catalog().subscribe(catalog => this.regions.set(catalog.regions)); }, error: err => this.adminMessage.set(err.error?.detail ?? 'No fue posible guardar el nodo.') }); }
   createUser(): void { this.userManagementMessage.set('La persona debe registrarse primero desde la página de acceso. Luego aparecerá aquí para que puedas asignarle un rol.'); this.loadUsers(); }
   changeRole(user: AdminUser, role: AdminUser['role']): void { this.matching.updateRole(user.id, role).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set('Rol actualizado.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar el rol.') }); }
-  saveUser(user: AdminUser): void { this.matching.updateUser(user.id, user.full_name, user.email).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set('Cuenta actualizada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar la cuenta.') }); }
+  saveUser(user: AdminUser): void { this.matching.updateUser(user.id, user.full_name, user.email).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.editingUserId.set(null); this.userManagementMessage.set('Cuenta actualizada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar la cuenta.') }); }
+  startUserEdit(userId: number): void { this.editingUserId.set(userId); this.userManagementMessage.set(''); }
+  cancelUserEdit(): void { this.editingUserId.set(null); this.loadUsers(); }
   setUserActive(user: AdminUser, isActive: boolean): void { this.matching.setUserStatus(user.id, isActive).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set(isActive ? 'Cuenta reactivada.' : 'Cuenta desactivada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible cambiar el estado de la cuenta.') }); }
   removeUserAccess(user: AdminUser): void {
     if (!confirm(`¿Eliminar el acceso de ${user.full_name}? La información histórica se conserva.`)) return;

@@ -17,7 +17,34 @@
     </header>
 
     @if (activeSection === 'admin' && userRole === 'admin') {
-      <section class="panel admin-panel"><span class="eyebrow">Gobernanza</span><h2>Cuentas registradas</h2><p>Comparte el enlace para que la persona se registre. Después podrás editar sus datos, asignar rol, desactivar o eliminar su acceso. La contraseña la crea y conserva cada usuario.</p><div class="admin-actions"><button class="run-button" type="button" (click)="copyRegistrationLink()">＋ Agregar cuenta</button><button class="secondary-button" type="button" (click)="loadUsers()">Actualizar lista</button></div>@if (userManagementMessage()) { <div class="form-error">{{ userManagementMessage() }}</div> }<div class="user-table">@for (user of users(); track user.id) { <div class="user-row" [class.user-row--inactive]="!user.is_active"><div class="user-fields"><input aria-label="Nombre" [(ngModel)]="user.full_name"><input aria-label="Correo" type="email" [(ngModel)]="user.email"><button class="secondary-button" type="button" (click)="saveUser(user)">Guardar cambios</button></div><div class="user-permissions"><select aria-label="Rol" [ngModel]="user.role" (ngModelChange)="changeRole(user, $event)"><option value="viewer">Cliente</option><option value="analyst">Analista</option><option value="admin">Admin</option></select><button class="secondary-button" type="button" (click)="setUserActive(user, !user.is_active)">{{ user.is_active ? 'Desactivar' : 'Reactivar' }}</button><button class="danger-button" type="button" [disabled]="!user.is_active" (click)="removeUserAccess(user)">Eliminar acceso</button><small>{{ user.is_active ? 'Activa' : 'Desactivada' }}</small></div></div> } @empty { <p>Aún no hay cuentas registradas.</p> }</div></section>
+      <section class="panel admin-panel">
+        <div class="admin-heading"><div><span class="eyebrow">Gobernanza</span><h2>Cuentas registradas</h2><p>Gestiona acceso, perfiles y permisos. Cada persona conserva su propia contraseña.</p></div><div class="admin-actions"><button class="run-button" type="button" (click)="copyRegistrationLink()">＋ Invitar persona</button><button class="secondary-button" type="button" (click)="loadUsers()">Actualizar</button></div></div>
+        @if (userManagementMessage()) { <div class="form-error">{{ userManagementMessage() }}</div> }
+        <div class="accounts-table-wrap">
+          <table class="accounts-table">
+            <thead><tr><th>Persona</th><th>Correo</th><th>Rol</th><th>Estado</th><th aria-label="Acciones">Acciones</th></tr></thead>
+            <tbody>@for (user of users(); track user.id) {
+              <tr [class.accounts-table__inactive]="!user.is_active">
+                @if (editingUserId() === user.id) {
+                  <td data-label="Persona"><input aria-label="Nombre" [(ngModel)]="user.full_name"></td>
+                  <td data-label="Correo"><input aria-label="Correo" type="email" [(ngModel)]="user.email"></td>
+                } @else {
+                  <td data-label="Persona"><strong>{{ user.full_name }}</strong><small>ID #{{ user.id }}</small></td>
+                  <td data-label="Correo">{{ user.email }}</td>
+                }
+                <td data-label="Rol"><select aria-label="Rol" [ngModel]="user.role" (ngModelChange)="changeRole(user, $event)"><option value="viewer">Cliente</option><option value="analyst">Analista</option><option value="admin">Administrador</option></select></td>
+                <td data-label="Estado"><span class="account-status" [class.account-status--inactive]="!user.is_active"><i></i>{{ user.is_active ? 'Activa' : 'Desactivada' }}</span></td>
+                <td data-label="Acciones"><div class="account-actions">
+                  @if (editingUserId() === user.id) { <button class="secondary-button" type="button" (click)="saveUser(user)">Guardar</button><button class="text-button" type="button" (click)="cancelUserEdit()">Cancelar</button> }
+                  @else { <button class="secondary-button" type="button" (click)="startUserEdit(user.id)">Editar</button> }
+                  <button class="text-button" type="button" (click)="setUserActive(user, !user.is_active)">{{ user.is_active ? 'Desactivar' : 'Reactivar' }}</button>
+                  <button class="danger-button" type="button" [disabled]="!user.is_active" (click)="removeUserAccess(user)">Eliminar</button>
+                </div></td>
+              </tr>
+            } @empty { <tr><td class="accounts-empty" colspan="5">Aún no hay cuentas registradas.</td></tr> }</tbody>
+          </table>
+        </div>
+      </section>
     }
 
     @if (activeSection === 'admin' && userRole === 'admin') { <section class="admin-overview"><article><span class="eyebrow">Modelos activos</span><strong>{{ models().length }}</strong><small>Entrenados con observaciones válidas</small></article><article><span class="eyebrow">Nodos disponibles</span><strong>{{ activeNodeCount() }}</strong><small>{{ activeNodeNames() }}</small></article></section> }
