@@ -41,6 +41,7 @@ export class DashboardComponent implements OnInit {
   readonly adminMessage = signal('');
   readonly userManagementMessage = signal('');
   readonly editingUserId = signal<number | null>(null);
+  readonly pendingDeleteUser = signal<AdminUser | null>(null);
   activeSection = 'decisions';
   setSection(section: string): void { this.activeSection = section; }
   roleLabel(): string { return this.userRole === 'admin' ? 'Administrador' : this.userRole === 'viewer' ? 'Cliente / productor' : 'Analista regional'; }
@@ -70,9 +71,13 @@ export class DashboardComponent implements OnInit {
   startUserEdit(userId: number): void { this.editingUserId.set(userId); this.userManagementMessage.set(''); }
   cancelUserEdit(): void { this.editingUserId.set(null); this.loadUsers(); }
   setUserActive(user: AdminUser, isActive: boolean): void { this.matching.setUserStatus(user.id, isActive).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set(isActive ? 'Cuenta reactivada.' : 'Cuenta desactivada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible cambiar el estado de la cuenta.') }); }
-  removeUserAccess(user: AdminUser): void {
-    if (!confirm(`¿Eliminar el acceso de ${user.full_name}? La información histórica se conserva.`)) return;
+  requestUserRemoval(user: AdminUser): void { this.pendingDeleteUser.set(user); }
+  cancelUserRemoval(): void { this.pendingDeleteUser.set(null); }
+  removeUserAccess(): void {
+    const user = this.pendingDeleteUser();
+    if (!user) return;
     this.matching.removeUserAccess(user.id).subscribe({ next: () => { this.users.update(items => items.map(item => item.id === user.id ? { ...item, is_active: false } : item)); this.userManagementMessage.set('Acceso eliminado. La cuenta quedó desactivada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible eliminar el acceso.') });
+    this.pendingDeleteUser.set(null);
   }
   async copyRegistrationLink(): Promise<void> { await navigator.clipboard.writeText(`${location.origin}/register`); this.userManagementMessage.set('Enlace de registro copiado. Cuando la persona cree su cuenta, aparecerá en esta lista.'); }
   saveObservation(): void {

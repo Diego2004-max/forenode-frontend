@@ -38,7 +38,7 @@
                   @if (editingUserId() === user.id) { <button class="secondary-button" type="button" (click)="saveUser(user)">Guardar</button><button class="text-button" type="button" (click)="cancelUserEdit()">Cancelar</button> }
                   @else { <button class="secondary-button" type="button" (click)="startUserEdit(user.id)">Editar</button> }
                   <button class="text-button" type="button" (click)="setUserActive(user, !user.is_active)">{{ user.is_active ? 'Desactivar' : 'Reactivar' }}</button>
-                  <button class="danger-button" type="button" [disabled]="!user.is_active" (click)="removeUserAccess(user)">Eliminar</button>
+                  <button class="danger-button" type="button" [disabled]="!user.is_active" (click)="requestUserRemoval(user)">Eliminar</button>
                 </div></td>
               </tr>
             } @empty { <tr><td class="accounts-empty" colspan="5">Aún no hay cuentas registradas.</td></tr> }</tbody>
@@ -115,5 +115,12 @@
       <small class="source-hint">Registra la cantidad disponible y una referencia verificable, por ejemplo el número de lote, remisión o registro de bodega.</small>
       <button class="run-button" (click)="saveInventory()" [disabled]="inventorySaving() || inventoryQuantity === null || inventoryQuantity <= 0 || inventorySource.trim().length < 3">{{ inventorySaving() ? 'Guardando…' : 'Guardar oferta' }}</button>
     </aside>
+  }
+  @if (pendingDeleteUser(); as user) {
+    <div class="dialog-backdrop" (click)="cancelUserRemoval()"></div>
+    <section class="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-access-title">
+      <span class="confirmation-dialog__icon">!</span><div><span class="eyebrow">Control de acceso</span><h2 id="delete-access-title">¿Eliminar acceso?</h2><p><strong>{{ user.full_name }}</strong> ya no podrá iniciar sesión. Su historial operativo se conserva para auditoría.</p></div>
+      <div class="confirmation-dialog__actions"><button class="secondary-button" type="button" (click)="cancelUserRemoval()">Cancelar</button><button class="danger-button" type="button" (click)="removeUserAccess()">Eliminar acceso</button></div>
+    </section>
   }
 </div>
