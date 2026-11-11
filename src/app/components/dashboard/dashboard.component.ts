@@ -26,7 +26,6 @@ export class DashboardComponent implements OnInit {
   readonly models = signal<ModelSummary[]>([]);
   readonly nodes = signal<RegionNode[]>([]);
   readonly training = signal(false);
-  readonly demoPreparing = signal(false);
   readonly observationSaving = signal(false);
   readonly trainingResult = signal<TrainingResponse | null>(null);
   readonly coverage = signal<ObservationCoverage | null>(null);
@@ -52,7 +51,6 @@ export class DashboardComponent implements OnInit {
   availableProducts(regionCode: string): Product[] { const codes = new Set(this.availability().filter(item => item.region_code === regionCode && item.available).map(item => item.product_code)); return this.products().filter(product => codes.has(product.code)); }
   regionHasAvailableScenario(regionCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.available); }
   isScenarioAvailable(regionCode: string, productCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.product_code === productCode && item.available); }
-  isDemoScenario(regionCode: string, productCode: string): boolean { return this.availability().some(item => item.region_code === regionCode && item.product_code === productCode && item.available && item.is_demo); }
   chooseRegion(region: Region): void { this.selectedRegion = region.code; const products = this.availableProducts(region.code); if (products.length && !products.some(product => product.code === this.selectedProduct)) this.selectedProduct = products[0].code; this.checkReadiness(); }
   chooseScenario(region: Region, product: Product): void { this.selectedRegion = region.code; this.selectedProduct = product.code; this.checkReadiness(); this.setSection('decisions'); }
   loadAvailability(): void { this.matching.availability().subscribe({ next: rows => { this.availability.set(rows); const first = rows.find(row => row.available); if (this.userRole === 'viewer' && first) { this.selectedRegion = first.region_code; this.selectedProduct = first.product_code; } this.checkReadiness(); }, error: () => this.availability.set([]) }); }
@@ -69,6 +67,10 @@ export class DashboardComponent implements OnInit {
   changeRole(user: AdminUser, role: AdminUser['role']): void { this.matching.updateRole(user.id, role).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set('Rol actualizado.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar el rol.') }); }
   saveUser(user: AdminUser): void { this.matching.updateUser(user.id, user.full_name, user.email).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set('Cuenta actualizada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible actualizar la cuenta.') }); }
   setUserActive(user: AdminUser, isActive: boolean): void { this.matching.setUserStatus(user.id, isActive).subscribe({ next: updated => { this.users.update(items => items.map(item => item.id === updated.id ? updated : item)); this.userManagementMessage.set(isActive ? 'Cuenta reactivada.' : 'Cuenta desactivada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible cambiar el estado de la cuenta.') }); }
+  removeUserAccess(user: AdminUser): void {
+    if (!confirm(`¿Eliminar el acceso de ${user.full_name}? La información histórica se conserva.`)) return;
+    this.matching.removeUserAccess(user.id).subscribe({ next: () => { this.users.update(items => items.map(item => item.id === user.id ? { ...item, is_active: false } : item)); this.userManagementMessage.set('Acceso eliminado. La cuenta quedó desactivada.'); }, error: err => this.userManagementMessage.set(err.error?.detail ?? 'No fue posible eliminar el acceso.') });
+  }
   async copyRegistrationLink(): Promise<void> { await navigator.clipboard.writeText(`${location.origin}/register`); this.userManagementMessage.set('Enlace de registro copiado. Cuando la persona cree su cuenta, aparecerá en esta lista.'); }
   saveObservation(): void {
     if (this.observedDemand === null || this.observedDemand <= 0 || this.observationSource.trim().length < 3) return;
@@ -85,17 +87,6 @@ export class DashboardComponent implements OnInit {
     }
     this.training.set(true); this.adminMessage.set(''); this.matching.train({ product_code: this.selectedProduct, region_code: this.selectedRegion }).subscribe({ next: response => { this.trainingResult.set(response); this.training.set(false); this.loadModels(); this.loadAvailability(); }, error: err => { this.adminMessage.set(err.error?.detail ?? 'No fue posible entrenar el modelo con estos datos.'); this.training.set(false); } });
   }
-  prepareDemoScenarios(): void {
-    this.demoPreparing.set(true); this.adminMessage.set('');
-    this.matching.bootstrapDemoModels().subscribe({
-      next: result => {
-        this.demoPreparing.set(false);
-        this.adminMessage.set(`${result.created_models} escenarios de prueba preparados. ${result.skipped_models} combinaciones existentes se conservaron.`);
-        this.loadModels(); this.loadAvailability(); this.checkReadiness();
-      },
-      error: err => { this.demoPreparing.set(false); this.adminMessage.set(err.error?.detail ?? 'No fue posible preparar los escenarios de prueba.'); }
-    });
-  }
   readonly today = this.dateOffset(0);
   readonly maxDate = this.dateOffset(16);
   readonly statusLabel = computed(() => ({
@@ -105,9 +96,10 @@ export class DashboardComponent implements OnInit {
   selectedRegion = '';
   selectedProduct = '';
   targetDate = this.today;
-  evaluatedSupply: number | null = null;
   inventoryQuantity: number | null = null;
   inventorySource = '';
+  selectedInventoryId: number | null = null;
+  selectedInventoryLabel = '';
   observationDate = this.dateOffset(-30);
   observedDemand: number | null = null;
   observationSource = '';
@@ -134,8 +126,8 @@ export class DashboardComponent implements OnInit {
   }
 
   run(): void {
-    if (!this.selectedRegion || !this.selectedProduct || this.evaluatedSupply === null || this.evaluatedSupply <= 0) {
-      this.error.set('Ingresa la cantidad que deseas evaluar antes de ejecutar el motor.');
+    if (!this.selectedRegion || !this.selectedProduct || this.selectedInventoryId === null) {
+      this.error.set('Registra una oferta con cantidad y referencia antes de ejecutar el motor.');
       return;
     }
     if (!this.readiness()?.can_run) {
@@ -143,13 +135,13 @@ export class DashboardComponent implements OnInit {
       return;
     }
     this.result.set(null); this.loading.set(true); this.error.set('');
-    this.matching.run({ product_code: this.selectedProduct, region_code: this.selectedRegion, target_date: this.targetDate, evaluated_supply_kg: this.evaluatedSupply }).subscribe({
+    this.matching.run({ product_code: this.selectedProduct, region_code: this.selectedRegion, target_date: this.targetDate, inventory_snapshot_id: this.selectedInventoryId }).subscribe({
       next: (response) => { this.result.set(response); this.loading.set(false); },
       error: (error: HttpErrorResponse) => { this.error.set(error.status === 409 ? error.error?.detail ?? 'Completa los datos de disponibilidad antes de continuar.' : error.error?.detail ?? 'El motor no pudo completar el análisis.'); this.loading.set(false); }
     });
   }
 
-  scenarioChanged(): void { this.result.set(null); this.error.set(''); }
+  scenarioChanged(): void { this.result.set(null); this.error.set(''); this.selectedInventoryId = null; this.selectedInventoryLabel = ''; }
   checkReadiness(): void {
     this.scenarioChanged();
     if (!this.selectedProduct || !this.selectedRegion) return;
@@ -172,7 +164,7 @@ export class DashboardComponent implements OnInit {
       recorded_at: new Date().toISOString(),
       source_reference: this.inventorySource.trim()
     }).subscribe({
-      next: () => { this.inventorySaving.set(false); this.inventoryOpen.set(false); this.inventoryQuantity = null; this.inventorySource = ''; this.checkReadiness(); },
+      next: record => { this.inventorySaving.set(false); this.inventoryOpen.set(false); this.selectedInventoryId = record.id; this.selectedInventoryLabel = `${record.quantity_kg.toLocaleString('es-CO')} kg · ${record.source_reference}`; this.inventoryQuantity = null; this.inventorySource = ''; this.error.set(''); this.checkReadiness(); },
       error: (error: HttpErrorResponse) => { this.error.set(error.error?.detail ?? 'No fue posible registrar el inventario.'); this.inventorySaving.set(false); }
     });
   }

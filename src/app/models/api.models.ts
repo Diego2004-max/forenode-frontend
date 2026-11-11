@@ -28,11 +28,11 @@ export interface MatchingRequest {
   product_code: string;
   region_code: string;
   target_date: string;
-  evaluated_supply_kg: number;
+  inventory_snapshot_id: number;
 }
 
 export interface MatchingReadiness { has_inventory: boolean; has_model: boolean; can_run: boolean; }
-export interface ScenarioAvailability { product_code: string; region_code: string; available: boolean; is_demo: boolean; }
+export interface ScenarioAvailability { product_code: string; region_code: string; available: boolean; }
 export interface ObservationCoverage { product_code: string; region_code: string; valid_observations: number; minimum_required: number; }
 
 export interface MatchingResponse {
@@ -71,6 +71,8 @@ export interface InventoryRequest {
   source_reference: string;
 }
 
+export interface InventoryResponse extends InventoryRequest { id: number; }
+
 export interface DemandObservationRequest {
   product_code: string;
   region_code: string;
@@ -95,8 +97,6 @@ export interface TrainingResponse {
   is_demo: boolean;
 }
 export type ModelSummary = TrainingResponse;
-export interface DemoBootstrapResponse { created_models: number; skipped_models: number; }
-
 export interface AdminUser { id: number; email: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; is_active: boolean; }
 export interface AdminUserCreate { email: string; password: string; full_name: string; role: 'viewer' | 'analyst' | 'admin'; }
 export interface RegionNode { id: number; code: string; name: string; latitude: number; longitude: number; is_active: boolean; }
