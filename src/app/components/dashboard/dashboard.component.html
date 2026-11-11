@@ -64,7 +64,7 @@
         <label>Producto<select [(ngModel)]="selectedProduct" (ngModelChange)="checkReadiness()"><option *ngFor="let product of products()" [value]="product.code" [disabled]="userRole === 'viewer' && !isScenarioAvailable(selectedRegion, product.code)">{{ product.name }}</option></select></label>
         <label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" [min]="today" [max]="maxDate"></label>
         <button class="secondary-button offer-button" type="button" (click)="openDataStep()">{{ selectedInventoryId ? 'Oferta registrada' : 'Registrar oferta' }}</button>
-        <button class="run-button" (click)="run()" [disabled]="loading() || readinessLoading() || !readiness()?.has_model || !selectedInventoryId">{{ loading() ? 'Procesando…' : readinessLoading() ? 'Verificando datos…' : !readiness()?.has_model ? 'Modelo no disponible' : !selectedInventoryId ? 'Registra la oferta' : userRole === 'viewer' ? 'Ver recomendación' : 'Ejecutar motor' }} <span>→</span></button>
+        <button class="run-button" (click)="run()" [disabled]="loading() || readinessLoading() || !readiness()?.has_model || !selectedInventoryId">{{ loading() ? 'Procesando…' : readinessLoading() ? 'Verificando datos…' : 'Ejecutar motor' }} <span>→</span></button>
       </div>
       @if (selectedInventoryId) { <p class="linked-offer"><strong>Oferta vinculada:</strong> {{ selectedInventoryLabel }}</p> }
     </section>

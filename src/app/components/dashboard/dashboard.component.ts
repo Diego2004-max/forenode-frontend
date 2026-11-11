@@ -145,8 +145,8 @@ export class DashboardComponent implements OnInit {
   }
 
   scenarioChanged(): void { this.result.set(null); this.error.set(''); this.selectedInventoryId = null; this.selectedInventoryLabel = ''; }
-  checkReadiness(): void {
-    this.scenarioChanged();
+  checkReadiness(resetRegisteredOffer = true): void {
+    if (resetRegisteredOffer) this.scenarioChanged();
     if (!this.selectedProduct || !this.selectedRegion) return;
     this.readinessLoading.set(true);
     this.matching.readiness(this.selectedProduct, this.selectedRegion).subscribe({
@@ -167,7 +167,7 @@ export class DashboardComponent implements OnInit {
       recorded_at: new Date().toISOString(),
       source_reference: this.inventorySource.trim()
     }).subscribe({
-      next: record => { this.inventorySaving.set(false); this.inventoryOpen.set(false); this.selectedInventoryId = record.id; this.selectedInventoryLabel = `${record.quantity_kg.toLocaleString('es-CO')} kg · ${record.source_reference}`; this.inventoryQuantity = null; this.inventorySource = ''; this.error.set(''); this.checkReadiness(); },
+      next: record => { this.inventorySaving.set(false); this.inventoryOpen.set(false); this.selectedInventoryId = record.id; this.selectedInventoryLabel = `${record.quantity_kg.toLocaleString('es-CO')} kg · ${record.source_reference}`; this.inventoryQuantity = null; this.inventorySource = ''; this.error.set(''); this.checkReadiness(false); },
       error: (error: HttpErrorResponse) => { this.error.set(error.error?.detail ?? 'No fue posible registrar el inventario.'); this.inventorySaving.set(false); }
     });
   }
